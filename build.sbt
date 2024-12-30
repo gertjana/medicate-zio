@@ -15,6 +15,8 @@ lazy val root = project
     version := "0.1.0",
     organization := "dev.gertjanassies",
     scalaVersion := scala3Version,
+    semanticdbEnabled := true,
+    scalacOptions += { "-Wunused:imports" },
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio" % zioVersion,
       "dev.zio" %% "zio-http" % zioHttpVersion,

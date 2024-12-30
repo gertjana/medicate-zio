@@ -3,7 +3,6 @@ package dev.gertjanassies.medicate
 import zio.*
 import zio.redis.*
 import zio.json.*
-import dev.gertjanassies.medicate.Medicine
 
 class MedicineRepository(redis: Redis) {
   private val prefix = "medicine:"

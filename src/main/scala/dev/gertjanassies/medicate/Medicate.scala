@@ -14,7 +14,7 @@ trait MedicationObject:
 final case class Medicine(
     id: String,
     name: String,
-    amount: Int,
+    amount: Double,
     dose: Double,
     stock: Double
 ) extends Medication:
@@ -23,10 +23,10 @@ final case class Medicine(
     this.copy(stock = stock + newStock)
 
   def takeDose(): Medicine =
-    this.copy(stock = stock - dose)
+    this.copy(stock = stock - dose*amount)
 
   def daysLeft(): Int =
-    (stock / dose).toInt
+    (stock / (dose*amount)).toInt
 
 
 object Medicine extends MedicationObject {

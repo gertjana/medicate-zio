@@ -4,10 +4,6 @@ import zio._
 import zio.http._
 import zio.http.netty.NettyConfig
 import zio.http.netty.server.NettyDriver
-import zio.redis._
-import zio.redis.embedded.EmbeddedRedis
-import zio.schema.{DeriveSchema, Schema}
-import zio.schema.codec.{BinaryCodec, ProtobufCodec}
 import zio.test._
 
 object TestInfraAPI extends ZIOSpecDefault {
