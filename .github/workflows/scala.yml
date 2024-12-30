@@ -21,7 +21,7 @@ jobs:
         with:
           args: "--exclude=third_party --list"
 
-build:
+  build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
