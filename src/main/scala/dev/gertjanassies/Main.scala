@@ -16,15 +16,15 @@ object Main extends ZIOAppDefault:
 
   def port: Int = System.env("PORT") match {
     case Success(Some(value)) => value.toInt
-    case _ => 8080
+    case _                    => 8080
   }
 
   override def run = Server
     .serve(medicate.MedicateApp.routes ++ infra.InfraApp.routes)
     .provide(
-        ZLayer.succeed(Server.Config.default.port(port)),
-        Server.live,
-        Redis.local,
-        ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
-        medicate.MedicineRepository.layer
+      ZLayer.succeed(Server.Config.default.port(port)),
+      Server.live,
+      Redis.local,
+      ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
+      medicate.MedicineRepository.layer
     )
