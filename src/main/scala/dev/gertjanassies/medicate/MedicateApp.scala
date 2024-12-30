@@ -6,8 +6,8 @@ import zio.json.*
 
 object MedicateApp {
   def routes: Routes[MedicineRepository, Response] = Routes(
+    
     // Create
-
     Method.POST / "medicines" -> handler { (request: Request) =>
       request.body.asString
         .map(_.fromJson[Medicine])

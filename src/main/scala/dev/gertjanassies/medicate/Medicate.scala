@@ -2,14 +2,15 @@ package dev.gertjanassies.medicate
 
 import zio.json.*
 
-trait Medication:
+trait Medication {
   def addStock(amount: Int): Medication
   def takeDose(): Medication
   def daysLeft(): Int
+}
 
-trait MedicationObject:
+trait MedicationObject {
   def calculateDaysLeftFor(medicines: List[Medicine]): List[(Medicine, Int)]
-
+}
 
 final case class Medicine(
     id: String,
@@ -17,7 +18,7 @@ final case class Medicine(
     amount: Double,
     dose: Double,
     stock: Double
-) extends Medication:
+) extends Medication {
 
   def addStock(newStock: Int): Medicine =
     this.copy(stock = stock + newStock)
@@ -27,7 +28,7 @@ final case class Medicine(
 
   def daysLeft(): Int =
     (stock / (dose*amount)).toInt
-
+}
 
 object Medicine extends MedicationObject {
   implicit val encoder: JsonEncoder[Medicine] = DeriveJsonEncoder.gen[Medicine]
