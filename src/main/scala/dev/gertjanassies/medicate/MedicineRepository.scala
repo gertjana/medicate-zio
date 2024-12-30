@@ -11,7 +11,7 @@ class MedicineRepository(redis: Redis) {
     redis.set(s"$prefix${medicine.id}", medicine.toJson)
 
   def getAll: Task[List[Medicine]] = for {
-    keys <- redis.keys(s"$prefix*").returning[String]
+    keys   <- redis.keys(s"$prefix*").returning[String]
     values <- redis.mGet(keys.toSeq).returning[Set[String]]
     medicines <- ZIO.succeed(
       values.flatten.flatten.flatMap(_.fromJson[Medicine].toOption)
@@ -19,7 +19,8 @@ class MedicineRepository(redis: Redis) {
   } yield medicines.toList
 
   def getById(id: String): Task[Option[Medicine]] =
-    redis.get(s"$prefix$id")
+    redis
+      .get(s"$prefix$id")
       .returning[String]
       .map(_.flatMap(_.fromJson[Medicine].toOption))
 
