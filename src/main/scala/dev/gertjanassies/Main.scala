@@ -12,7 +12,7 @@ object ProtobufCodecSupplier extends CodecSupplier {
   def get[A: Schema]: BinaryCodec[A] = ProtobufCodec.protobufCodec
 }
 
-object Main extends ZIOAppDefault:
+object Main extends ZIOAppDefault {
 
   def port: Int = System.env("PORT") match {
     case Success(Some(value)) => value.toInt
@@ -28,3 +28,4 @@ object Main extends ZIOAppDefault:
       ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
       medicate.MedicineRepository.layer
     )
+}
