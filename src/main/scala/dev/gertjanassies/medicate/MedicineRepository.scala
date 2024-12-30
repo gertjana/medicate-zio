@@ -18,6 +18,7 @@ class MedicineRepository(redis: Redis) {
     )
   } yield medicines.toList
 
+  
   def getById(id: String): Task[Option[Medicine]] =
     redis
       .get(s"$prefix$id")

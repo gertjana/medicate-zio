@@ -92,7 +92,7 @@ object MedicateApp {
           .serviceWithZIO[MedicineRepository](repo => {
             repo.getById(id).flatMap {
               case Some(_) =>
-            repo.delete(id) *> ZIO
+                repo.delete(id) *> ZIO
                   .succeed(Response.status(Status.NoContent))
               case None =>
                 ZIO.succeed(Response.status(Status.NotFound))
