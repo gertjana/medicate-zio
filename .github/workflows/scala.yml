@@ -10,17 +10,40 @@ permissions:
   contents: read
 
 jobs:
-  scalafmt-lint:
-    runs-on: ubuntu-latest
+  scalafmt:
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
-          fetch-depth: 1
-      - name: Checking your code to see if u r naughty or nice
-        uses: openlawteam/scalafmt-ci@v2
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: coursier/setup-action@v1
         with:
-          args: "--exclude=third_party --list"
-
+          apps: scalafmt
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v36
+        with:
+          files: |
+            **.scala
+            **.sbt
+      - name: Run Scalafmt on changed files
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: scalafmt ${{ steps.changed-files.outputs.all_changed_files }}
+      - name: Check if there are any changes
+        id: verify-diff
+        run: git diff --quiet . || echo "changed=true" >> $GITHUB_OUTPUT
+      - name: Commit files
+        if: steps.verify-diff.outputs.changed == 'true'
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -a -m "style: Run Scalafmt"
+      - name: Push changes
+        if: steps.verify-diff.outputs.changed == 'true'
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.head_ref }}
   build:
     runs-on: ubuntu-latest
     steps:
