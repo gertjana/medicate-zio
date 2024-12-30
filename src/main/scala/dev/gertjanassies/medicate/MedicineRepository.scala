@@ -18,10 +18,8 @@ class MedicineRepository(redis: Redis) {
     )
   } yield medicines.toList
 
-  
   def getById(id: String): Task[Option[Medicine]] =
-    redis
-      .get(s"$prefix$id")
+    redis.get(s"$prefix$id")
       .returning[String]
       .map(_.flatMap(_.fromJson[Medicine].toOption))
 
