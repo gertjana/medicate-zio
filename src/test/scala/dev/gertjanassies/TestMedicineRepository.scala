@@ -15,8 +15,13 @@ object EmbeddedRedisSpec extends ZIOSpecDefault {
   }
 
   val medicine =
-    medicate.Medicine(id = "test1", name = "Test", amount = 2.0, dose = 1.0, stock = 10)
-
+    medicate.Medicine(
+      id = "test1",
+      name = "Test",
+      amount = 2.0,
+      dose = 1.0,
+      stock = 10
+    )
 
   def spec = suite("MedicineRepository should")(
     test("set and get values") {
