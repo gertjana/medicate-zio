@@ -9,7 +9,7 @@ import zio.test._
 import zio.test.Assertion._
 import dev.gertjanassies.medicate.MedicineRepository
 
-object EmbeddedRedisSpec extends ZIOSpecDefault {
+object TestMedicineRepository extends ZIOSpecDefault {
   object ProtobufCodecSupplier extends CodecSupplier {
     def get[A: Schema]: BinaryCodec[A] = ProtobufCodec.protobufCodec
   }
@@ -35,7 +35,7 @@ object EmbeddedRedisSpec extends ZIOSpecDefault {
   ).provideShared(
     MedicineRepository.layer("test:medicine:"),
     ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
-    ZLayer.succeed(RedisConfig.Local),
+    ZLayer.succeed(RedisConfig(host="localhost", port=6379)),
     Redis.singleNode
   ) // TestAspect.ignore
 }
