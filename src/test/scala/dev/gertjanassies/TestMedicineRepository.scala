@@ -13,17 +13,17 @@ object EmbeddedRedisSpec extends ZIOSpecDefault {
   object ProtobufCodecSupplier extends CodecSupplier {
     def get[A: Schema]: BinaryCodec[A] = ProtobufCodec.protobufCodec
   }
-  
-  final case class Item (id: UUID, name: String, quantity: Int)
+
+  final case class Item(id: UUID, name: String, quantity: Int)
   object Item {
     implicit val itemSchema: Schema[Item] = DeriveSchema.gen[Item]
   }
-  
+
   def spec = suite("MedicineRepository should")(
     test("set and get values") {
       for {
         redis <- ZIO.service[Redis]
-        item   = Item(UUID.randomUUID, "foo", 2)
+        item = Item(UUID.randomUUID, "foo", 2)
         _     <- redis.set(s"item.${item.id.toString}", item)
         found <- redis.get(s"item.${item.id.toString}").returning[Item]
       } yield assert(found)(isSome(equalTo(item)))
