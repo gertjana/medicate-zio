@@ -32,5 +32,5 @@ object EmbeddedRedisSpec extends ZIOSpecDefault {
     EmbeddedRedis.layer,
     ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
     Redis.singleNode
-  ) @@ TestAspect.ignore
+  ) // TestAspect.ignore
 }
