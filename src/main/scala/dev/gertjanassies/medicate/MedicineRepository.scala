@@ -4,8 +4,8 @@ import zio.*
 import zio.redis.*
 import zio.json.*
 
-class MedicineRepository(redis: Redis) {
-  private val prefix = "medicine:"
+class MedicineRepository(redis: Redis, prefix: String) {
+//  private val prefix = "medicine:"
 
   def create(medicine: Medicine): Task[Boolean] =
     redis.set(s"$prefix${medicine.id}", medicine.toJson)
@@ -32,6 +32,6 @@ class MedicineRepository(redis: Redis) {
 }
 
 object MedicineRepository {
-  val layer: ZLayer[Redis, Nothing, MedicineRepository] =
-    ZLayer.fromFunction(new MedicineRepository(_))
+  def layer(prefix: String): ZLayer[Redis, Nothing, MedicineRepository] =
+    ZLayer.fromFunction((redis: Redis) => new MedicineRepository(redis, prefix))
 }
