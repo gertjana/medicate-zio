@@ -1,6 +1,7 @@
 package dev.gertjanassies.medicate
 
-import zio.json.*
+import zio.json._
+import zio.schema._
 
 trait Medication {
   def addStock(amount: Int): Medication
@@ -33,6 +34,8 @@ final case class Medicine(
 object Medicine extends MedicationObject {
   implicit val encoder: JsonEncoder[Medicine] = DeriveJsonEncoder.gen[Medicine]
   implicit val decoder: JsonDecoder[Medicine] = DeriveJsonDecoder.gen[Medicine]
+  
+  implicit val itemSchema: Schema[Medicine] = DeriveSchema.gen[Medicine]
   def calculateDaysLeftFor(medicines: List[Medicine]): List[(Medicine, Int)] = {
     medicines.map(medicine => (medicine.copy(), medicine.daysLeft()))
   }

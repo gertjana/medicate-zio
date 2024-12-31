@@ -7,8 +7,8 @@ import zio.http.netty.server.NettyDriver
 import zio.test._
 
 object TestInfraAPI extends ZIOSpecDefault {
-  def spec = suite("test medicate api ") {
-    test("Test readiness probe") {
+  def spec = suite("Medicate Infra API should ") {
+    test("respond correctly to a readyness probe check") {
       for {
         client <- ZIO.service[Client]
         port <- ZIO.serviceWithZIO[Server](_.port)
