@@ -35,7 +35,7 @@ object TestMedicineRepository extends ZIOSpecDefault {
   ).provideShared(
     MedicineRepository.layer("test:medicine:"),
     ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
-    ZLayer.succeed(RedisConfig(host="localhost", port=6379)),
+    ZLayer.succeed(RedisConfig(host = "localhost", port = 6379)),
     Redis.singleNode
   ) // TestAspect.ignore
 }
