@@ -7,7 +7,7 @@ import zio.json.*
 class MedicineRepository(redis: Redis, prefix: String) {
 //  private val prefix = "medicine:"
 
-  def create(medicine: Medicine): Task[Boolean] =
+  def create(medicine: Medicine): ZIO[Any, RedisError, Boolean] =
     redis.set(s"$prefix${medicine.id}", medicine.toJson)
 
   def getAll: Task[List[Medicine]] = for {

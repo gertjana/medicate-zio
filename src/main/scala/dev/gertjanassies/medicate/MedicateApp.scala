@@ -16,10 +16,10 @@ object MedicateApp {
             ZIO.succeed(Response.text(error).status(Status.BadRequest))
           case Right(medicine) =>
             ZIO.serviceWithZIO[MedicineRepository] { repo =>
-              repo.create(medicine) *>
-                ZIO.succeed(
-                  Response.json(medicine.toJson).status(Status.Created)
-                )
+              repo.create(medicine).mapError(error => println(error.getMessage))
+              ZIO.succeed(
+                Response.json(medicine.toJson).status(Status.Created)
+              )
             }
         }
         .catchAll(error =>
