@@ -25,16 +25,16 @@ final case class Medicine(
     this.copy(stock = stock + newStock)
 
   def takeDose(): Medicine =
-    this.copy(stock = stock - dose*amount)
+    this.copy(stock = stock - dose * amount)
 
   def daysLeft(): Int =
-    (stock / (dose*amount)).toInt
+    (stock / (dose * amount)).toInt
 }
 
 object Medicine extends MedicationObject {
   implicit val encoder: JsonEncoder[Medicine] = DeriveJsonEncoder.gen[Medicine]
   implicit val decoder: JsonDecoder[Medicine] = DeriveJsonDecoder.gen[Medicine]
-  
+
   implicit val itemSchema: Schema[Medicine] = DeriveSchema.gen[Medicine]
   def calculateDaysLeftFor(medicines: List[Medicine]): List[(Medicine, Int)] = {
     medicines.map(medicine => (medicine.copy(), medicine.daysLeft()))
