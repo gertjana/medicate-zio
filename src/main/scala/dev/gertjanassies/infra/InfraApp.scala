@@ -7,6 +7,6 @@ object InfraApp {
     // Heartbeat for ready probes
     Method.GET / "ready" -> handler {
       Response.status(Status.Ok)
-    },
+    }
   )
 }
