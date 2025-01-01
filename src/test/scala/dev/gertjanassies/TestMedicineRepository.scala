@@ -23,11 +23,11 @@ object TestMedicineRepository extends ZIOSpecDefault {
       dose = 1.0,
       stock = 10
     )
-    
+
   def spec = {
     val useEmbedded = scala.sys.env.contains("EMBEDDED_REDIS")
     val suit = suite("MedicineRepository should")(
-    test("set and get values") {
+      test("set and get values") {
         for {
           redis  <- ZIO.service[Redis]
           repo   <- ZIO.service[MedicineRepository]
@@ -36,10 +36,10 @@ object TestMedicineRepository extends ZIOSpecDefault {
         } yield assert(gotten)(isSome[medicate.Medicine](equalTo(medicine)))
       }
     )
-    
+
     if (useEmbedded) {
       suit.provideShared(
-        EmbeddedRedis.layer, 
+        EmbeddedRedis.layer,
         Redis.singleNode,
         ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
         MedicineRepository.layer("test:medicine:")
@@ -52,5 +52,5 @@ object TestMedicineRepository extends ZIOSpecDefault {
       )
     }
   }
-    // TestAspect.ignore
+  // TestAspect.ignore
 }
