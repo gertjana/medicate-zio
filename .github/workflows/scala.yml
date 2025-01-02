@@ -44,7 +44,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: main
-  build:
+  test:
     runs-on: ubuntu-latest
     env:
       EMBEDDED_REDIS: true
