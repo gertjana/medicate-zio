@@ -10,7 +10,9 @@ class MedicineRepository(redis: Redis, prefix: String) {
     redis.set(s"$prefix${medicine.id}", medicine.toJson)
 
   def getAll: Task[List[Medicine]] = for {
-    keys   <- redis.keys(s"$prefix*").returning[String] // keys is blocking, replace with scan
+    keys <- redis
+      .keys(s"$prefix*")
+      .returning[String] // keys is blocking, replace with scan
     values <- redis.mGet(keys.head, keys.tail: _*).returning[String]
     medicines <- ZIO.succeed(
       values.map(_.flatMap(_.fromJson[Medicine].toOption))

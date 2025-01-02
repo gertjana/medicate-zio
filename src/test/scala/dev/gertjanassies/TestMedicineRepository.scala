@@ -51,9 +51,9 @@ object TestMedicineRepository extends ZIOSpecDefault {
           _      <- repo.create(m2)
           gotten <- repo.getAll
         } yield assert(gotten)(
-          hasSameElements(List(m1,m2))
+          hasSameElements(List(m1, m2))
         )
-      } @@ TestAspect.after (
+      } @@ TestAspect.after(
         for {
           redis <- ZIO.service[Redis]
           _     <- redis.del(s"${prefix}test_get_all1")
@@ -63,9 +63,9 @@ object TestMedicineRepository extends ZIOSpecDefault {
       test("be able to update a Medication") {
         val m = medicine.copy(id = "test_update")
         for {
-          redis  <- ZIO.service[Redis]
-          repo   <- ZIO.service[MedicineRepository]
-          _      <- repo.create(m)
+          redis <- ZIO.service[Redis]
+          repo  <- ZIO.service[MedicineRepository]
+          _     <- repo.create(m)
           updated = medicine.copy(amount = 1.0)
           _      <- repo.update(m.id, updated)
           gotten <- repo.getById(m.id)
@@ -79,10 +79,10 @@ object TestMedicineRepository extends ZIOSpecDefault {
       test("be able to delete a Medication") {
         val m = medicine.copy(id = "test_delete")
         for {
-          redis <- ZIO.service[Redis]
-          repo  <- ZIO.service[MedicineRepository]
-          _     <- repo.create(m)
-          _     <- repo.delete(m.id)
+          redis  <- ZIO.service[Redis]
+          repo   <- ZIO.service[MedicineRepository]
+          _      <- repo.create(m)
+          _      <- repo.delete(m.id)
           gotten <- repo.getById(m.id)
         } yield assert(gotten)(isNone)
       } @@ TestAspect.after(
