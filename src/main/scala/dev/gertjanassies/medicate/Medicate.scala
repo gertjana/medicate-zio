@@ -26,7 +26,7 @@ final case class Medicine(
     stock: Double,
     daysLeft: Option[Int] = None
 ) extends Medication {
-  import Medicine.calcDaysLeft
+  import Medicine._
 
   def addStock(newStock: Int): Medicine =
     val resultingStock = this.stock + newStock
@@ -49,9 +49,13 @@ object Medicine extends MedicationObject {
 
   implicit val itemSchema: Schema[Medicine] = DeriveSchema.gen[Medicine]
 
-  private def calcDaysLeft(s: Double, a: Double, d: Double): Option[Int] =
-    if a == 0 || d == 0 then None
-    else Some((s / (d * a)).toInt)
+  private def calcDaysLeft(
+      stock: Double,
+      amount: Double,
+      dose: Double
+  ): Option[Int] =
+    if amount == 0 || dose == 0 then None
+    else Some((stock / (dose * amount)).toInt)
 
   def create(
       id: String,

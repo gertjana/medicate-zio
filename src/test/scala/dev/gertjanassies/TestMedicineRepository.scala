@@ -2,13 +2,13 @@ package dev.gertjanassies
 
 import zio._
 import zio.redis._
-// import zio.redis.embedded.EmbeddedRedis
 import zio.schema.{Schema}
 import zio.schema.codec.{BinaryCodec, ProtobufCodec}
 import zio.test._
 import zio.test.Assertion._
 import dev.gertjanassies.medicate.MedicineRepository
 import zio.redis.embedded.EmbeddedRedis
+import medicate._
 
 object TestMedicineRepository extends ZIOSpecDefault {
   object ProtobufCodecSupplier extends CodecSupplier {
@@ -16,19 +16,20 @@ object TestMedicineRepository extends ZIOSpecDefault {
   }
   val prefix = "test:repo:medicine:"
 
-  val medicine =
-    medicate.Medicine.create(
-      id = "test_template",
+  def createTestMedicine(id: String): Medicine = {
+    Medicine.create(
+      id = id,
       name = "Test",
       amount = 2.0,
       dose = 1.0,
       stock = 10
     )
+  }
 
   def spec = {
     val testSuite = suite("MedicineRepository should")(
       test("be able set and get a medication") {
-        val m = medicine.copy(id = "test_set_get")
+        val m = createTestMedicine(id = "test_set_get")
         for {
           redis  <- ZIO.service[Redis]
           repo   <- ZIO.service[MedicineRepository]
@@ -42,8 +43,8 @@ object TestMedicineRepository extends ZIOSpecDefault {
         } yield ()
       ),
       test("be able to get multiple medications") {
-        val m1 = medicine.copy(id = "test_get_all1")
-        val m2 = medicine.copy(id = "test_get_all2")
+        val m1 = createTestMedicine(id = "test_get_all1")
+        val m2 = createTestMedicine(id = "test_get_all2")
         for {
           redis  <- ZIO.service[Redis]
           repo   <- ZIO.service[MedicineRepository]
@@ -61,12 +62,12 @@ object TestMedicineRepository extends ZIOSpecDefault {
         } yield ()
       ),
       test("be able to update a Medication") {
-        val m = medicine.copy(id = "test_update")
+        val m = createTestMedicine(id = "test_update")
         for {
           redis <- ZIO.service[Redis]
           repo  <- ZIO.service[MedicineRepository]
           _     <- repo.create(m)
-          updated = medicine.copy(amount = 1.0)
+          updated = m.copy(amount = 1.0)
           _      <- repo.update(m.id, updated)
           gotten <- repo.getById(m.id)
         } yield assert(gotten)(isSome[medicate.Medicine](equalTo(updated)))
@@ -77,7 +78,7 @@ object TestMedicineRepository extends ZIOSpecDefault {
         } yield ()
       ),
       test("be able to delete a Medication") {
-        val m = medicine.copy(id = "test_delete")
+        val m = createTestMedicine(id = "test_delete")
         for {
           redis  <- ZIO.service[Redis]
           repo   <- ZIO.service[MedicineRepository]
