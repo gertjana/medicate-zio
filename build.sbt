@@ -1,6 +1,6 @@
 val scala3Version = "3.3.4"
 
-val zioVersion               = "2.0.19"
+val zioVersion               = "2.0.22"
 val zioHttpVersion           = "3.0.1"
 val zioRedisVersion          = "1.0.0"
 val zioSchemsProtobufVersion = "1.5.0"
