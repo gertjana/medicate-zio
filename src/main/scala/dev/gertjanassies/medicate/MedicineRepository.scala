@@ -5,18 +5,17 @@ import zio.redis.*
 import zio.json.*
 
 class MedicineRepository(redis: Redis, prefix: String) {
-//  private val prefix = "medicine:"
 
   def create(medicine: Medicine): ZIO[Any, RedisError, Boolean] =
     redis.set(s"$prefix${medicine.id}", medicine.toJson)
 
   def getAll: Task[List[Medicine]] = for {
-    keys   <- redis.keys(s"$prefix*").returning[String]
-    values <- redis.mGet(keys.toSeq).returning[Set[String]]
+    keys   <- redis.keys(s"$prefix*").returning[String] // keys is blocking, replace with scan
+    values <- redis.mGet(keys.head, keys.tail: _*).returning[String]
     medicines <- ZIO.succeed(
-      values.flatten.flatten.flatMap(_.fromJson[Medicine].toOption)
+      values.map(_.flatMap(_.fromJson[Medicine].toOption))
     )
-  } yield medicines.toList
+  } yield medicines.filter(_.isDefined).map(_.get).toList
 
   def getById(id: String): Task[Option[Medicine]] =
     redis

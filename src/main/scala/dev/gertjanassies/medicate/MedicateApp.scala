@@ -32,8 +32,8 @@ object MedicateApp {
     Method.GET / "medicines" -> handler {
       ZIO
         .serviceWithZIO[MedicineRepository](_.getAll)
-        .map(Medicine.calculateDaysLeftFor(_))
-        .map(medicines => Response.json(medicines.toJson))
+        // .map(Medicine.calculateDaysLeftFor(_))
+        .map(meds => Response.json(meds.toJson))
         .catchAll(error =>
           ZIO.succeed(
             Response.text(error.getMessage).status(Status.InternalServerError)
@@ -104,22 +104,7 @@ object MedicateApp {
           )
     },
 
-    // days left
-    Method.GET / "medicines" / string("id") / "daysLeft" -> handler {
-      (id: String, request: Request) =>
-        ZIO
-          .serviceWithZIO[MedicineRepository](_.getById(id))
-          .flatMap {
-            case Some(medicine) =>
-              ZIO.succeed(Response.json(medicine.daysLeft().toJson))
-            case None => ZIO.succeed(Response.status(Status.NotFound))
-          }
-          .catchAll(error =>
-            ZIO.succeed(
-              Response.text(error.getMessage).status(Status.InternalServerError)
-            )
-          )
-    },
+    // add Stock
     Method.POST / "medicines" / string("id") / "addStock" -> handler {
       (id: String, request: Request) =>
         request.queryParam("amount") match {

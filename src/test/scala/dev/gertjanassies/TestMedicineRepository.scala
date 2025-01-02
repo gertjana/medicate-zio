@@ -14,10 +14,11 @@ object TestMedicineRepository extends ZIOSpecDefault {
   object ProtobufCodecSupplier extends CodecSupplier {
     def get[A: Schema]: BinaryCodec[A] = ProtobufCodec.protobufCodec
   }
+  val prefix = "test:repo:medicine:"
 
   val medicine =
-    medicate.Medicine(
-      id = "test1",
+    medicate.Medicine.create(
+      id = "test_template",
       name = "Test",
       amount = 2.0,
       dose = 1.0,
@@ -25,32 +26,87 @@ object TestMedicineRepository extends ZIOSpecDefault {
     )
 
   def spec = {
-    val useEmbedded = scala.sys.env.contains("EMBEDDED_REDIS")
-    val suit = suite("MedicineRepository should")(
-      test("set and get values") {
+    val testSuite = suite("MedicineRepository should")(
+      test("be able set and get a medication") {
+        val m = medicine.copy(id = "test_set_get")
         for {
           redis  <- ZIO.service[Redis]
           repo   <- ZIO.service[MedicineRepository]
-          _      <- repo.create(medicine)
-          gotten <- repo.getById(medicine.id)
-        } yield assert(gotten)(isSome[medicate.Medicine](equalTo(medicine)))
-      }
-    )
+          _      <- repo.create(m)
+          gotten <- repo.getById(m.id)
+        } yield assert(gotten)(isSome[medicate.Medicine](equalTo(m)))
+      } @@ TestAspect.after(
+        for {
+          redis <- ZIO.service[Redis]
+          _     <- redis.del(s"${prefix}test_set_get")
+        } yield ()
+      ),
+      test("be able to get multiple medications") {
+        val m1 = medicine.copy(id = "test_get_all1")
+        val m2 = medicine.copy(id = "test_get_all2")
+        for {
+          redis  <- ZIO.service[Redis]
+          repo   <- ZIO.service[MedicineRepository]
+          _      <- repo.create(m1)
+          _      <- repo.create(m2)
+          gotten <- repo.getAll
+        } yield assert(gotten)(
+          hasSameElements(List(m1,m2))
+        )
+      } @@ TestAspect.after (
+        for {
+          redis <- ZIO.service[Redis]
+          _     <- redis.del(s"${prefix}test_get_all1")
+          _     <- redis.del(s"${prefix}test_get_all2")
+        } yield ()
+      ),
+      test("be able to update a Medication") {
+        val m = medicine.copy(id = "test_update")
+        for {
+          redis  <- ZIO.service[Redis]
+          repo   <- ZIO.service[MedicineRepository]
+          _      <- repo.create(m)
+          updated = medicine.copy(amount = 1.0)
+          _      <- repo.update(m.id, updated)
+          gotten <- repo.getById(m.id)
+        } yield assert(gotten)(isSome[medicate.Medicine](equalTo(updated)))
+      } @@ TestAspect.after(
+        for {
+          redis <- ZIO.service[Redis]
+          _     <- redis.del(s"${prefix}test_update")
+        } yield ()
+      ),
+      test("be able to delete a Medication") {
+        val m = medicine.copy(id = "test_delete")
+        for {
+          redis <- ZIO.service[Redis]
+          repo  <- ZIO.service[MedicineRepository]
+          _     <- repo.create(m)
+          _     <- repo.delete(m.id)
+          gotten <- repo.getById(m.id)
+        } yield assert(gotten)(isNone)
+      } @@ TestAspect.after(
+        for {
+          redis <- ZIO.service[Redis]
+          _     <- redis.del(s"${prefix}test_delete")
+        } yield ()
+      )
+    ) @@ TestAspect.sequential
 
-    if (useEmbedded) {
-      suit.provideShared(
+    // EmbeddedRedis does not work on MacOS Sonoma/Seqoia due to tightened security
+    if (scala.sys.env.contains("EMBEDDED_REDIS")) {
+      testSuite.provideShared(
+        ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
         EmbeddedRedis.layer,
         Redis.singleNode,
-        ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
-        MedicineRepository.layer("test:medicine:")
+        MedicineRepository.layer("test:repo:medicine:")
       )
     } else {
-      suit.provideShared(
+      testSuite.provideShared(
         ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
         Redis.local,
-        MedicineRepository.layer("test:medicine:")
+        MedicineRepository.layer("test:repo:medicine:")
       )
     }
   }
-  // TestAspect.ignore
 }
