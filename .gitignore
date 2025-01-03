@@ -35,3 +35,7 @@ classes/
 
 # Visual Studio Code
 .vscode
+
+# elm
+elm-stuff
+repl-temp-*
