@@ -15,4 +15,5 @@ jobs:
         with:
           elm-version: 0.19.1
       - run: cd ui
+      - run: elm init
       - run: elm make src/Main.elm --output=elm.js
