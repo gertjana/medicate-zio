@@ -1,4 +1,4 @@
-name: Scala CI
+name: Elm CI
 
 on:
   push:
