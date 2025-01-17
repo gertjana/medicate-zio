@@ -15,10 +15,9 @@ object MedicateApp {
             ZIO.succeed(Response.text(error).status(Status.BadRequest))
           case Right(medicine) =>
             ZIO.serviceWithZIO[MedicineRepository] { repo =>
-              repo.create(medicine).mapError(error => println(error.getMessage))
-              ZIO.succeed(
-                Response.json(medicine.toJson).status(Status.Created)
-              )
+              for {
+                result <- repo.create(medicine)
+              } yield Response.json(medicine.toJson).status(Status.Created)
             }
         }
         .catchAll(error =>
@@ -71,6 +70,7 @@ object MedicateApp {
               ZIO.serviceWithZIO[MedicineRepository] { repo =>
                 repo.getById(id).flatMap {
                   case Some(_) =>
+                    println("found id, updating...")
                     repo.update(id, medicine) *>
                       ZIO.succeed(Response.json(medicine.toJson))
                   case None => ZIO.succeed(Response.status(Status.NotFound))

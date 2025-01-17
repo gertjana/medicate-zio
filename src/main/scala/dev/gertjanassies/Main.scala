@@ -26,6 +26,6 @@ object Main extends ZIOAppDefault {
       Server.live,
       Redis.local,
       ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
-      medicate.MedicineRepository.layer("medicine:")
+      medicate.MedicineRepository.layer("prod:medicine:")
     )
 }
