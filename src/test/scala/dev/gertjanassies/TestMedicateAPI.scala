@@ -116,14 +116,21 @@ object TestMedicateAPI extends ZIOSpecDefault {
         for {
           client <- ZIO.service[Client]
           port   <- ZIO.serviceWithZIO[Server](_.port)
-          testRequest = Request.get(url = URL.root.port(port)).addQueryParam("amount", "5")
+          testRequest = Request
+            .get(url = URL.root.port(port))
+            .addQueryParam("amount", "5")
           _ <- TestServer.addRoutes(medicate.MedicateApp.routes)
           response <- client.batched(
-            Request.post(testRequest.url / "medicines" / testMedicine.id / "addStock", Body.empty)
+            Request.post(
+              testRequest.url / "medicines" / testMedicine.id / "addStock",
+              Body.empty
+            )
           )
           body <- response.body.asString
         } yield assertTrue(
-          response.status == Status.Ok && body.fromJson[Medicine].map(_.stock) == Right(15.0)
+          response.status == Status.Ok && body
+            .fromJson[Medicine]
+            .map(_.stock) == Right(15.0)
         )
       },
       test("be able to take a dose") {
@@ -133,11 +140,16 @@ object TestMedicateAPI extends ZIOSpecDefault {
           testRequest = Request.get(url = URL.root.port(port))
           _ <- TestServer.addRoutes(medicate.MedicateApp.routes)
           response <- client.batched(
-            Request.post(testRequest.url / "medicines" / testMedicine.id / "takeDose", Body.empty)
+            Request.post(
+              testRequest.url / "medicines" / testMedicine.id / "takeDose",
+              Body.empty
+            )
           )
           body <- response.body.asString
         } yield assertTrue(
-          response.status == Status.Ok && body.fromJson[Medicine].map(_.stock) == Right(13.0)
+          response.status == Status.Ok && body
+            .fromJson[Medicine]
+            .map(_.stock) == Right(13.0)
         )
       },
       test("not be able to add stock when the amount queryparam is absent") {
@@ -147,9 +159,12 @@ object TestMedicateAPI extends ZIOSpecDefault {
           testRequest = Request.get(url = URL.root.port(port))
           _ <- TestServer.addRoutes(medicate.MedicateApp.routes)
           response <- client.batched(
-            Request.post(testRequest.url / "medicines" / testMedicine.id / "addStock", Body.empty)
+            Request.post(
+              testRequest.url / "medicines" / testMedicine.id / "addStock",
+              Body.empty
+            )
           )
-        } yield assertTrue(response.status == Status.BadRequest) 
+        } yield assertTrue(response.status == Status.BadRequest)
       },
       test("be able to delete a single medication") {
         for {

@@ -4,7 +4,7 @@ import zio._
 import zio.test._
 
 object TestMainAPI extends ZIOSpecDefault {
-  def spec = suite("The main class should ") (
+  def spec = suite("The main class should ")(
     test("start a server") {
       for {
         _ <- Main.run.fork
@@ -15,7 +15,7 @@ object TestMainAPI extends ZIOSpecDefault {
         - <- TestSystem.putEnv("PORT", "8081")
         _ <- Main.run.fork
       } yield assertCompletes
-    }, 
+    },
     test("set the default port") {
       for {
         _ <- TestSystem.clearEnv("PORT")
@@ -32,4 +32,4 @@ object TestMainAPI extends ZIOSpecDefault {
     ZIOAppArgs.empty,
     ZLayer.succeed(Scope.global)
   )
-  }
+}
