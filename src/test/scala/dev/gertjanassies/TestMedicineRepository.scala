@@ -6,7 +6,6 @@ import zio.schema.{Schema}
 import zio.schema.codec.{BinaryCodec, ProtobufCodec}
 import zio.test._
 import zio.test.Assertion._
-import dev.gertjanassies.medicate.MedicineRepository
 import zio.redis.embedded.EmbeddedRedis
 import medicate._
 

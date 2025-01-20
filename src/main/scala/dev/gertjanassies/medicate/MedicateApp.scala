@@ -70,7 +70,6 @@ object MedicateApp {
               ZIO.serviceWithZIO[MedicineRepository] { repo =>
                 repo.getById(id).flatMap {
                   case Some(_) =>
-                    println("found id, updating...")
                     repo.update(id, medicine) *>
                       ZIO.succeed(Response.json(medicine.toJson))
                   case None => ZIO.succeed(Response.status(Status.NotFound))

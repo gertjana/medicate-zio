@@ -26,7 +26,7 @@ class MedicineRepository(redis: Redis, prefix: String) {
       .map(_.flatMap(_.fromJson[Medicine].toOption))
 
   def update(id: String, medicine: Medicine): Task[Boolean] =
-    redis.set(s"$prefix$id", medicine.toJson)
+    redis.set(s"$prefix$id", medicine.copy(id=id).toJson)
 
   def delete(id: String): Task[Unit] =
     redis.del(s"$prefix$id").unit
