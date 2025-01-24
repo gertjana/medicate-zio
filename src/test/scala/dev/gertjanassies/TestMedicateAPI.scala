@@ -182,7 +182,43 @@ object TestMedicateAPI extends ZIOSpecDefault {
           redis <- ZIO.service[Redis]
           _ <- redis.set(s"$prefix${testMedicine3.id}", testMedicine3.toJson)
         } yield ()
-      )
+      ),
+      test("not be able to create a medicine with invalid json body") {
+        for {
+          client <- ZIO.service[Client]
+          port   <- ZIO.serviceWithZIO[Server](_.port)
+          testRequest = Request.get(url = URL.root.port(port))
+          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          response <- client.batched(
+            Request.post(
+              testRequest.url / "medicines",
+              Body.fromString("invalid json")
+            )
+          )
+        } yield assertTrue(response.status == Status.BadRequest)
+      },
+      test("be able to respond correctly to an invalid path") {
+        for {
+          client <- ZIO.service[Client]
+          port   <- ZIO.serviceWithZIO[Server](_.port)
+          testRequest = Request.get(url = URL.root.port(port))
+          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          response <- client.batched(
+            Request.get(testRequest.url / "non-existing-path")
+          )
+        } yield assertTrue(response.status == Status.NotFound)
+      }, 
+      test("be able to not delete a non-existing medicine") {
+        for {
+          client <- ZIO.service[Client]
+          port   <- ZIO.serviceWithZIO[Server](_.port)
+          testRequest = Request.get(url = URL.root.port(port))
+          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          response <- client.batched(
+            Request.delete(testRequest.url / "medicines" / "non-existing-id")
+          )
+        } yield assertTrue(response.status == Status.NotFound)
+      }
     ) @@ TestAspect.sequential
     if (scala.sys.env.contains("EMBEDDED_REDIS")) {
       testSuite.provideShared(
