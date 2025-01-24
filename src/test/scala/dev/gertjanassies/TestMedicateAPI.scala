@@ -213,7 +213,8 @@ object TestMedicateAPI extends ZIOSpecDefault {
             )
           )
         } yield assertTrue(response.status == Status.BadRequest)
-      },      test("be able to respond correctly to an invalid path") {
+      },
+      test("be able to respond correctly to an invalid path") {
         for {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
