@@ -62,7 +62,7 @@ jobs:
     - name: Run tests
       run: sbt coverage test coverageReport
     - name: Upload coverage report
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: ./target/scala-3.3.4/scoverage-report/scoverage.xml
