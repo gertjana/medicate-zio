@@ -13,7 +13,7 @@ object MedicateApi {
         case origin if origin.renderedValue.contains("localhost") =>
           Some(AccessControlAllowOrigin.Specific(origin))
         case _ => None
-      },
+      }
     )
   def routes: Routes[MedicineRepository, Response] = Routes(
     // Create

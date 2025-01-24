@@ -28,8 +28,8 @@ object TestMedicine extends ZIOSpecDefault {
   def spec = suite("Medicine Spec should")(
     test("calculate takeDose/addStock/daysLeft correctly") {
       for {
-        dosed    <- ZIO.succeed(med.takeDose())
-        updated  <- ZIO.succeed(dosed.addStock(10))
+        dosed <- ZIO.succeed(med.takeDose())
+        updated <- ZIO.succeed(dosed.addStock(10))
         daysLeft <- ZIO.succeed(updated.daysLeft)
       } yield assertTrue(daysLeft == Some(9))
     },

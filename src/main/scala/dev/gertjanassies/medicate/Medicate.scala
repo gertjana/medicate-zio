@@ -8,16 +8,16 @@ trait Medication {
   def takeDose(): Medication
 }
 
-trait MedicationObject {
-  def create(
-      id: String,
-      name: String,
-      dose: Double,
-      unit: String,
-      amount: Double,
-      stock: Double
-  ): Medication
-}
+// trait MedicationObject {
+//   def create(
+//       id: String,
+//       name: String,
+//       dose: Double,
+//       unit: String,
+//       amount: Double,
+//       stock: Double
+//   ): Medication
+// }
 
 final case class Medicine(
     id: String,
@@ -45,7 +45,7 @@ final case class Medicine(
     )
 }
 
-object Medicine extends MedicationObject {
+object Medicine {
   implicit val encoder: JsonEncoder[Medicine] = DeriveJsonEncoder.gen[Medicine]
   implicit val decoder: JsonDecoder[Medicine] = DeriveJsonDecoder.gen[Medicine]
 
@@ -55,10 +55,12 @@ object Medicine extends MedicationObject {
       stock: Double,
       amount: Double
   ): Option[Int] =
-    if amount == 0  then None
-    else Some((stock / amount).toInt)
+    amount match {
+      case 0 => None
+      case _ => Some((stock / amount).toInt)
+    }
 
-  def create( 
+  def create(
       id: String,
       name: String,
       dose: Double,

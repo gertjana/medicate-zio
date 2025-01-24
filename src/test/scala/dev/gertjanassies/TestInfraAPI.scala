@@ -11,9 +11,9 @@ object TestInfraAPI extends ZIOSpecDefault {
     test("respond correctly to a readyness probe check") {
       for {
         client <- ZIO.service[Client]
-        port   <- ZIO.serviceWithZIO[Server](_.port)
+        port <- ZIO.serviceWithZIO[Server](_.port)
         testRequest = Request.get(url = URL.root.port(port))
-        _        <- TestServer.addRoutes(infra.InfraApp.routes)
+        _ <- TestServer.addRoutes(infra.InfraApp.routes)
         response <- client.batched(Request.get(testRequest.url / "ready"))
       } yield assertTrue(response.status == Status.Ok)
     }.provideSome[Client with Driver](TestServer.layer)
