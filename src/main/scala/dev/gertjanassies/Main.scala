@@ -2,7 +2,6 @@ package dev.gertjanassies
 
 import zio._
 import zio.http._
-import zio.Exit.Success
 import zio.redis.Redis
 import zio.redis.CodecSupplier
 import zio.schema._
@@ -14,11 +13,7 @@ object ProtobufCodecSupplier extends CodecSupplier {
 
 object Main extends ZIOAppDefault {
 
-  def port: Int = System.env("PORT") match {
-    case Success(Some(value)) => value.toInt
-    case _                    => 8080
-  }
-
+  def port = 8080
   override def run = Server
     .serve(medicate.MedicateApi.routes ++ infra.InfraApp.routes)
     .provide(

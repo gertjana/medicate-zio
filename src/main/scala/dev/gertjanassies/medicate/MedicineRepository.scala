@@ -7,7 +7,8 @@ import zio.json.*
 class MedicineRepository(redis: Redis, prefix: String) {
 
   def create(medicine: Medicine): ZIO[Any, RedisError, Boolean] =
-    redis.set(s"$prefix${medicine.id}", medicine.toJson)
+    var calculated = medicine.copy(daysLeft = Medicine.calcDaysLeft(medicine.stock, medicine.amount))
+    redis.set(s"$prefix${medicine.id}", calculated.toJson)
 
   def getAll: Task[List[Medicine]] = for {
     keys <- redis
@@ -26,6 +27,7 @@ class MedicineRepository(redis: Redis, prefix: String) {
       .map(_.flatMap(_.fromJson[Medicine].toOption))
 
   def update(id: String, medicine: Medicine): Task[Boolean] =
+    var calculated = medicine.copy(daysLeft = Medicine.calcDaysLeft(medicine.stock, medicine.amount))
     redis.set(s"$prefix$id", medicine.copy(id = id).toJson)
 
   def delete(id: String): Task[Unit] =

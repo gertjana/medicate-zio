@@ -12,8 +12,9 @@ trait MedicationObject {
   def create(
       id: String,
       name: String,
-      amount: Double,
       dose: Double,
+      unit: String,
+      amount: Double,
       stock: Double
   ): Medication
 }
@@ -21,8 +22,9 @@ trait MedicationObject {
 final case class Medicine(
     id: String,
     name: String,
-    amount: Double,
     dose: Double,
+    unit: String,
+    amount: Double,
     stock: Double,
     daysLeft: Option[Int] = None
 ) extends Medication {
@@ -32,14 +34,14 @@ final case class Medicine(
     val resultingStock = this.stock + newStock
     this.copy(
       stock = resultingStock,
-      daysLeft = calcDaysLeft(resultingStock, amount, dose)
+      daysLeft = calcDaysLeft(resultingStock, amount)
     )
 
   def takeDose(): Medicine =
     val resultingStock = this.stock - dose * amount
     this.copy(
       stock = resultingStock,
-      daysLeft = calcDaysLeft(resultingStock, amount, dose)
+      daysLeft = calcDaysLeft(resultingStock, amount)
     )
 }
 
@@ -49,20 +51,20 @@ object Medicine extends MedicationObject {
 
   implicit val itemSchema: Schema[Medicine] = DeriveSchema.gen[Medicine]
 
-  private def calcDaysLeft(
+  def calcDaysLeft(
       stock: Double,
-      amount: Double,
-      dose: Double
+      amount: Double
   ): Option[Int] =
-    if amount == 0 || dose == 0 then None
-    else Some((stock / (dose * amount)).toInt)
+    if amount == 0  then None
+    else Some((stock / amount).toInt)
 
-  def create(
+  def create( 
       id: String,
       name: String,
-      amount: Double,
       dose: Double,
+      unit: String,
+      amount: Double,
       stock: Double
   ): Medicine =
-    Medicine(id, name, amount, dose, stock, calcDaysLeft(stock, amount, dose))
+    Medicine(id, name, dose, unit, amount, stock, calcDaysLeft(stock, amount))
 }

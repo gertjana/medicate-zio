@@ -19,8 +19,9 @@ object TestMedicateAPI extends ZIOSpecDefault {
   val testMedicine = Medicine.create(
     id = "test1",
     name = "Test",
-    amount = 2.0,
     dose = 1.0,
+    unit = "mg",
+    amount = 2.0,
     stock = 10
   )
   val testMedicine2 = testMedicine.copy(id = "test2")

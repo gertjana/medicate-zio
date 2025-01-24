@@ -10,16 +10,18 @@ object TestMedicine extends ZIOSpecDefault {
     Medicine.create(
       id = "test1",
       name = "Test",
-      amount = 2.0,
       dose = 1.0,
+      unit = "mg",
+      amount = 2.0,
       stock = 10
     )
   val med2 =
     Medicine.create(
       id = "test2",
       name = "Test2",
-      amount = 1.0,
       dose = 3.0,
+      unit = "mg",
+      amount = 1.0,
       stock = 10
     )
 
@@ -33,14 +35,15 @@ object TestMedicine extends ZIOSpecDefault {
     },
     test("calculate daysLeft for multiple medicines correctly") {
       assertTrue(med.daysLeft == Some(5)) &&
-      assertTrue(med2.daysLeft == Some(3))
+      assertTrue(med2.daysLeft == Some(10))
     },
     test("calculate daysLeft correctly when using the create constructor") {
       val m = Medicine.create(
         id = "test3",
         name = "Test3",
-        amount = 1.0,
         dose = 1.0,
+        unit = "mg",
+        amount = 1.0,
         stock = 10
       )
       assertTrue(m.daysLeft == Some(10))
@@ -54,8 +57,9 @@ object TestMedicine extends ZIOSpecDefault {
       val m = Medicine.create(
         id = "test4",
         name = "Test4",
-        amount = 0.0,
         dose = 0.0,
+        unit = "mg",
+        amount = 0.0,
         stock = 10
       )
       assertTrue(m.daysLeft == None)

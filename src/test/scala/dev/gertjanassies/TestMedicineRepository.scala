@@ -19,8 +19,9 @@ object TestMedicineRepository extends ZIOSpecDefault {
     Medicine.create(
       id = id,
       name = "Test",
-      amount = 2.0,
       dose = 1.0,
+      unit = "mg",
+      amount = 2.0,
       stock = 10
     )
   }
