@@ -200,7 +200,20 @@ object TestMedicateAPI extends ZIOSpecDefault {
           )
         } yield assertTrue(response.status == Status.BadRequest)
       },
-      test("be able to respond correctly to an invalid path") {
+      test("not be able to update a medicine with invalid json body") {
+        for {
+          client <- ZIO.service[Client]
+          port <- ZIO.serviceWithZIO[Server](_.port)
+          testRequest = Request.get(url = URL.root.port(port))
+          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          response <- client.batched(
+            Request.put(
+              testRequest.url / "medicines" / testMedicine.id,
+              Body.fromString("invalid json")
+            )
+          )
+        } yield assertTrue(response.status == Status.BadRequest)
+      },      test("be able to respond correctly to an invalid path") {
         for {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
