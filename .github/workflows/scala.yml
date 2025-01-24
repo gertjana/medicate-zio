@@ -59,11 +59,14 @@ jobs:
     - name: Install sbt
       uses: sbt/setup-sbt@v1
     - name: Run tests
-      run: sbt test
-  coverage_assemnly:
+      run: sbt test coverage coverageReport
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v2
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./target/scala-2.13/scoverage-report/scoverage.xml
+  assembly:
     runs-on: ubuntu-latest
-    env:
-      EMBEDDED_REDIS: true
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK 21
@@ -74,11 +77,10 @@ jobs:
         cache: 'sbt'
     - name: Install sbt
       uses: sbt/setup-sbt@v1
-    - name: Run tests
-      run: sbt coverage test coverageReport assembly
-    - name: Upload coverage report
-      uses: codecov/codecov-action@v2
+    - name: Run assembly
+      run: sbt assembly
+    - name: Archive artifact
+      uses: actions/upload-artifact@v4
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./target/scala-2.13/scoverage-report/scoverage.xml
-      
+        name: medicate-assembly.jar
+        path: target/scala-3.3.4/medicate-assembly-0.1.0.jar
