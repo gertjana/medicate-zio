@@ -7,10 +7,7 @@ import zio.json.*
 class MedicineRepository(redis: Redis, prefix: String) {
 
   def create(medicine: Medicine): ZIO[Any, RedisError, Boolean] =
-    var calculated = medicine.copy(daysLeft =
-      Medicine.calcDaysLeft(medicine.stock, medicine.amount)
-    )
-    redis.set(s"$prefix${calculated.id}", calculated.toJson)
+    redis.set(s"$prefix${medicine.id}", medicine.toJson)
 
   def getAll: Task[List[Medicine]] = for {
     keys <- redis
@@ -18,22 +15,25 @@ class MedicineRepository(redis: Redis, prefix: String) {
       .returning[String]
     values <- redis.mGet(keys.head, keys.tail: _*).returning[String]
     medicines <- ZIO.succeed(
-      values.map(_.flatMap(_.fromJson[Medicine].toOption))
+      values
+        .map(_.flatMap(_.fromJson[Medicine].toOption))
+        .filter(_.isDefined)
+        .map(_.get)
     )
-  } yield medicines.filter(_.isDefined).map(_.get).toList
+  } yield medicines.toList.sorted
+    .map(m => m.copy(daysLeft = Medicine.calcDaysLeft(m.stock, m.amount)))
 
   def getById(id: String): Task[Option[Medicine]] =
     redis
       .get(s"$prefix$id")
       .returning[String]
       .map(_.flatMap(_.fromJson[Medicine].toOption))
+      .map(o =>
+        o.map(m => m.copy(daysLeft = Medicine.calcDaysLeft(m.stock, m.amount)))
+      )
 
   def update(id: String, medicine: Medicine): Task[Boolean] =
-    var calculated = medicine.copy(
-      id = id,
-      daysLeft = Medicine.calcDaysLeft(medicine.stock, medicine.amount)
-    )
-    redis.set(s"$prefix$id", calculated.toJson)
+    redis.set(s"$prefix$id", medicine.toJson)
 
   def delete(id: String): Task[Unit] =
     redis.del(s"$prefix$id").unit

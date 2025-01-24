@@ -51,6 +51,9 @@ object Medicine {
 
   implicit val itemSchema: Schema[Medicine] = DeriveSchema.gen[Medicine]
 
+  implicit def orderingById[A <: Medicine]: Ordering[A] =
+    Ordering.by(medicine => medicine.id)
+
   def calcDaysLeft(
       stock: Double,
       amount: Double
