@@ -145,6 +145,7 @@ object MedicateApi {
             )
         }
     },
+    // take Dose
     Method.POST / "medicines" / string("id") / "takeDose" -> handler {
       (id: String, request: Request) =>
         ZIO
