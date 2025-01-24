@@ -20,7 +20,7 @@ object Main extends ZIOAppDefault {
   }
 
   override def run = Server
-    .serve(medicate.MedicateApp.routes ++ infra.InfraApp.routes)
+    .serve(medicate.MedicateApi.routes ++ infra.InfraApp.routes)
     .provide(
       ZLayer.succeed(Server.Config.default.port(port)),
       Server.live,

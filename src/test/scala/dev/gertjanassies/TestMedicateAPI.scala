@@ -34,7 +34,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port   <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _        <- TestServer.addRoutes(medicate.MedicateApp.routes)
+          _        <- TestServer.addRoutes(medicate.MedicateApi.routes)
           response <- client.batched(Request.get(testRequest.url / "medicines"))
           body     <- response.body.asString
           medicines = body.fromJson[List[medicate.Medicine]]
@@ -58,7 +58,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port   <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApp.routes)
+          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
           response <- client.batched(
             Request.get(testRequest.url / "medicines" / "non-existing-id")
           )
@@ -69,7 +69,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port   <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApp.routes)
+          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
           response <- client.batched(
             Request.post(
               testRequest.url / "medicines",
@@ -86,7 +86,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port   <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApp.routes)
+          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
           response <- client.batched(
             Request.put(
               testRequest.url / "medicines" / testMedicine.id,
@@ -103,7 +103,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port   <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApp.routes)
+          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
           response <- client.batched(
             Request.put(
               testRequest.url / "medicines" / "non-existing-id",
@@ -119,7 +119,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           testRequest = Request
             .get(url = URL.root.port(port))
             .addQueryParam("amount", "5")
-          _ <- TestServer.addRoutes(medicate.MedicateApp.routes)
+          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
           response <- client.batched(
             Request.post(
               testRequest.url / "medicines" / testMedicine.id / "addStock",
@@ -138,7 +138,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port   <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApp.routes)
+          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
           response <- client.batched(
             Request.post(
               testRequest.url / "medicines" / testMedicine.id / "takeDose",
@@ -157,7 +157,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port   <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApp.routes)
+          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
           response <- client.batched(
             Request.post(
               testRequest.url / "medicines" / testMedicine.id / "addStock",
@@ -171,7 +171,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port   <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApp.routes)
+          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
           response <- client.batched(
             Request.delete(testRequest.url / "medicines" / testMedicine3.id)
           )

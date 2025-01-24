@@ -3,8 +3,18 @@ package dev.gertjanassies.medicate
 import zio.*
 import zio.http.*
 import zio.json.*
+import zio.http.Middleware.{CorsConfig, cors}
+import zio.http.Header.AccessControlAllowOrigin
 
-object MedicateApp {
+object MedicateApi {
+  val config: CorsConfig = // remove in production
+    CorsConfig(
+      allowedOrigin = {
+        case origin if true =>
+          Some(AccessControlAllowOrigin.Specific(origin))
+        case _ => None
+      },
+    )
   def routes: Routes[MedicineRepository, Response] = Routes(
     // Create
     Method.POST / "medicines" -> handler { (request: Request) =>
@@ -31,7 +41,6 @@ object MedicateApp {
     Method.GET / "medicines" -> handler {
       ZIO
         .serviceWithZIO[MedicineRepository](_.getAll)
-        // .map(Medicine.calculateDaysLeftFor(_))
         .map(meds => Response.json(meds.toJson))
         .catchAll(error =>
           ZIO.succeed(
@@ -157,5 +166,5 @@ object MedicateApp {
             )
           )
     }
-  ) // routes
+  ) @@ cors(config) // routes
 }
