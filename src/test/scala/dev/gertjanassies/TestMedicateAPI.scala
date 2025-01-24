@@ -12,6 +12,9 @@ import dev.gertjanassies.medicate.Medicine
 import Medicine._
 import zio.json.EncoderOps
 import zio.json.DecoderOps
+import dev.gertjanassies.medicate.MedicateApi
+import zio.http.Header.Origin
+import zio.http.Middleware.CorsConfig
 
 object TestMedicateAPI extends ZIOSpecDefault {
   val prefix = "test:api:medicine:"
@@ -218,6 +221,13 @@ object TestMedicateAPI extends ZIOSpecDefault {
             Request.delete(testRequest.url / "medicines" / "non-existing-id")
           )
         } yield assertTrue(response.status == Status.NotFound)
+      },
+      test("CORS Config should allow for all origins") {
+        val cors_config = MedicateApi.config
+        assertTrue(cors_config.allowedOrigin(Origin("http", "localhost", None)).isDefined)
+        assertTrue(cors_config.allowedOrigin(Origin("http", "localhost", None)).get.headerName == "Access-Control-Allow-Origin")
+        assertTrue(cors_config.allowedOrigin(Origin("http", "localhost", None)).get.renderedValue == "http://localhost")
+  
       }
     ) @@ TestAspect.sequential
     if (scala.sys.env.contains("EMBEDDED_REDIS")) {
@@ -230,7 +240,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
         Client.default,
         ZLayer.succeed(Server.Config.default.onAnyOpenPort),
         NettyDriver.customized,
-        ZLayer.succeed(NettyConfig.defaultWithFastShutdown)
+        ZLayer.succeed(NettyConfig.defaultWithFastShutdown),
       )
     } else {
       testSuite.provideShared(
@@ -241,7 +251,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
         Client.default,
         ZLayer.succeed(Server.Config.default.onAnyOpenPort),
         NettyDriver.customized,
-        ZLayer.succeed(NettyConfig.defaultWithFastShutdown)
+        ZLayer.succeed(NettyConfig.defaultWithFastShutdown),
       )
     }
   }
