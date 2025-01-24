@@ -62,6 +62,8 @@ jobs:
       run: sbt test
   coverage_assemnly:
     runs-on: ubuntu-latest
+    env:
+      EMBEDDED_REDIS: true
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK 21
