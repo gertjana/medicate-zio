@@ -222,6 +222,20 @@ object TestMedicateAPI extends ZIOSpecDefault {
           )
         } yield assertTrue(response.status == Status.NotFound)
       },
+      test("not be able to update a non-existing medicine") {
+        for {
+          client <- ZIO.service[Client]
+          port <- ZIO.serviceWithZIO[Server](_.port)
+          testRequest = Request.get(url = URL.root.port(port))
+          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          response <- client.batched(
+            Request.put(
+              testRequest.url / "medicines" / "non-existing-id",
+              Body.fromString(testMedicine2.toJson)
+            )
+          )
+        } yield assertTrue(response.status == Status.NotFound)
+      },
       test("CORS Config should allow for localhost") {
         val cors_config = MedicateApi.config
         assertTrue(
