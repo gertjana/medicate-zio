@@ -222,12 +222,13 @@ object TestMedicateAPI extends ZIOSpecDefault {
           )
         } yield assertTrue(response.status == Status.NotFound)
       },
-      test("CORS Config should allow for all origins") {
+      test("CORS Config should allow for localhost") {
         val cors_config = MedicateApi.config
         assertTrue(cors_config.allowedOrigin(Origin("http", "localhost", None)).isDefined)
         assertTrue(cors_config.allowedOrigin(Origin("http", "localhost", None)).get.headerName == "Access-Control-Allow-Origin")
         assertTrue(cors_config.allowedOrigin(Origin("http", "localhost", None)).get.renderedValue == "http://localhost")
-  
+
+        assertTrue(cors_config.allowedOrigin(Origin("http", "example.com", None)).isEmpty)
       }
     ) @@ TestAspect.sequential
     if (scala.sys.env.contains("EMBEDDED_REDIS")) {

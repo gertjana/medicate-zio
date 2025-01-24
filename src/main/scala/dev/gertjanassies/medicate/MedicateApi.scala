@@ -10,7 +10,7 @@ object MedicateApi {
   val config: CorsConfig = // remove in production
     CorsConfig(
       allowedOrigin = {
-        case origin if true =>
+        case origin if origin.renderedValue.contains("localhost") =>
           Some(AccessControlAllowOrigin.Specific(origin))
         case _ => None
       },
