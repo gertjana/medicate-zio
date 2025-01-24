@@ -44,6 +44,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: main
+
   test:
     runs-on: ubuntu-latest
     env:
@@ -59,12 +60,13 @@ jobs:
     - name: Install sbt
       uses: sbt/setup-sbt@v1
     - name: Run tests
-      run: sbt test coverage coverageReport
+      run: sbt coverage test coverageReport
     - name: Upload coverage report
       uses: codecov/codecov-action@v2
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: ./target/scala-3.3.4/scoverage-report/scoverage.xml
+
   assembly:
     runs-on: ubuntu-latest
     steps:
