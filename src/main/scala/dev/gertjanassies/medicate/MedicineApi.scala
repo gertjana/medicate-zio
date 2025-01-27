@@ -6,7 +6,7 @@ import zio.json.*
 import zio.http.Middleware.{CorsConfig, cors}
 import zio.http.Header.AccessControlAllowOrigin
 
-object MedicateApi {
+object MedicineApi {
   val config: CorsConfig = // remove in production
     CorsConfig(
       allowedOrigin = {

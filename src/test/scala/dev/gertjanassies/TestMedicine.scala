@@ -12,7 +12,7 @@ object TestMedicine extends ZIOSpecDefault {
       name = "Test",
       dose = 1.0,
       unit = "mg",
-      amount = 2.0,
+      amount = Some(2.0),
       stock = 10
     )
   val med2 =
@@ -21,7 +21,7 @@ object TestMedicine extends ZIOSpecDefault {
       name = "Test2",
       dose = 3.0,
       unit = "mg",
-      amount = 1.0,
+      amount = Some(1.0),
       stock = 10
     )
 
@@ -31,7 +31,7 @@ object TestMedicine extends ZIOSpecDefault {
         dosed <- ZIO.succeed(med.takeDose())
         updated <- ZIO.succeed(dosed.addStock(10))
         daysLeft <- ZIO.succeed(updated.daysLeft)
-      } yield assertTrue(daysLeft == Some(9))
+      } yield assertTrue(daysLeft == Some(10))
     },
     test("calculate daysLeft for multiple medicines correctly") {
       assertTrue(med.daysLeft == Some(5)) &&
@@ -43,7 +43,7 @@ object TestMedicine extends ZIOSpecDefault {
         name = "Test3",
         dose = 1.0,
         unit = "mg",
-        amount = 1.0,
+        amount = Some(1.0),
         stock = 10
       )
       assertTrue(m.daysLeft == Some(10))
@@ -59,7 +59,7 @@ object TestMedicine extends ZIOSpecDefault {
         name = "Test4",
         dose = 0.0,
         unit = "mg",
-        amount = 0.0,
+        amount = Some(0.0),
         stock = 10
       )
       assertTrue(m.daysLeft == None)

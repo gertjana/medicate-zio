@@ -21,7 +21,7 @@ object TestMedicineRepository extends ZIOSpecDefault {
       name = "Test",
       dose = 1.0,
       unit = "mg",
-      amount = 2.0,
+      amount = Some(2.0),
       stock = 10
     )
   }
@@ -68,8 +68,8 @@ object TestMedicineRepository extends ZIOSpecDefault {
           repo <- ZIO.service[MedicineRepository]
           _ <- repo.create(m)
           updated = m.copy(
-            amount = 1.0,
-            daysLeft = Medicine.calcDaysLeft(m.stock, 1.0)
+            amount = Some(1.0),
+            daysLeft = Medicine.calcDaysLeft(m.stock, Some(1.0))
           )
           _ <- repo.update(m.id, updated)
           gotten <- repo.getById(m.id)

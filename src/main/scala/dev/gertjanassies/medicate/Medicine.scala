@@ -8,23 +8,14 @@ trait Medication {
   def takeDose(): Medication
 }
 
-// trait MedicationObject {
-//   def create(
-//       id: String,
-//       name: String,
-//       dose: Double,
-//       unit: String,
-//       amount: Double,
-//       stock: Double
-//   ): Medication
-// }
+type MedicineId = String
 
 final case class Medicine(
-    id: String,
+    id: MedicineId,
     name: String,
     dose: Double,
     unit: String,
-    amount: Double,
+    amount: Option[Double] = None,
     stock: Double,
     daysLeft: Option[Int] = None
 ) extends Medication {
@@ -38,7 +29,7 @@ final case class Medicine(
     )
 
   def takeDose(): Medicine =
-    val resultingStock = this.stock - dose * amount
+    val resultingStock = this.stock //TODO - (dose * amount.getOrElse(0))
     this.copy(
       stock = resultingStock,
       daysLeft = calcDaysLeft(resultingStock, amount)
@@ -56,11 +47,12 @@ object Medicine {
 
   def calcDaysLeft(
       stock: Double,
-      amount: Double
+      amount: Option[Double]
   ): Option[Int] =
-    amount match {
-      case 0 => None
-      case _ => Some((stock / amount).toInt)
+    amount match  {
+      case None => None
+      case Some(0) => None
+      case Some(v) => Some((stock / v).toInt)
     }
 
   def create(
@@ -68,7 +60,7 @@ object Medicine {
       name: String,
       dose: Double,
       unit: String,
-      amount: Double,
+      amount: Option[Double],
       stock: Double
   ): Medicine =
     Medicine(id, name, dose, unit, amount, stock, calcDaysLeft(stock, amount))

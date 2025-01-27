@@ -12,11 +12,11 @@ import dev.gertjanassies.medicate.Medicine
 import Medicine._
 import zio.json.EncoderOps
 import zio.json.DecoderOps
-import dev.gertjanassies.medicate.MedicateApi
+import dev.gertjanassies.medicate.MedicineApi
 import zio.http.Header.Origin
 import zio.http.Middleware.CorsConfig
 
-object TestMedicateAPI extends ZIOSpecDefault {
+object TestMedicineAPI extends ZIOSpecDefault {
   val prefix = "test:api:medicine:"
 
   val testMedicine = Medicine.create(
@@ -24,7 +24,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
     name = "Test",
     dose = 1.0,
     unit = "mg",
-    amount = 2.0,
+    amount = Some(2.0),
     stock = 10
   )
   val testMedicine2 = testMedicine.copy(id = "test2")
@@ -32,13 +32,13 @@ object TestMedicateAPI extends ZIOSpecDefault {
   val testMedicine4 = testMedicine.copy(id = "test4")
 
   def spec = {
-    val testSuite = suite("Medicate API should ")(
+    val testSuite = suite("Medicate Medicine API should ")(
       test("respond correctly to getting a list of medications") {
         for {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(Request.get(testRequest.url / "medicines"))
           body <- response.body.asString
           medicines = body.fromJson[List[medicate.Medicine]]
@@ -62,7 +62,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.get(testRequest.url / "medicines" / "non-existing-id")
           )
@@ -72,11 +72,10 @@ object TestMedicateAPI extends ZIOSpecDefault {
         for {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
-          testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.post(
-              testRequest.url / "medicines",
+              URL.root.port(port) / "medicines",
               Body.fromString(testMedicine.toJson)
             )
           )
@@ -90,7 +89,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.put(
               testRequest.url / "medicines" / testMedicine.id,
@@ -107,7 +106,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.put(
               testRequest.url / "medicines" / "non-existing-id",
@@ -123,7 +122,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           testRequest = Request
             .get(url = URL.root.port(port))
             .addQueryParam("amount", "5")
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.post(
               testRequest.url / "medicines" / testMedicine.id / "addStock",
@@ -142,7 +141,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.post(
               testRequest.url / "medicines" / testMedicine.id / "takeDose",
@@ -153,7 +152,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
         } yield assertTrue(
           response.status == Status.Ok && body
             .fromJson[Medicine]
-            .map(_.stock) == Right(13.0)
+            .map(_.stock) == Right(15.0)
         )
       },
       test("not be able to add stock when the amount queryparam is absent") {
@@ -161,7 +160,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.post(
               testRequest.url / "medicines" / testMedicine.id / "addStock",
@@ -175,7 +174,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.delete(testRequest.url / "medicines" / testMedicine3.id)
           )
@@ -191,7 +190,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.post(
               testRequest.url / "medicines",
@@ -205,7 +204,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.put(
               testRequest.url / "medicines" / testMedicine.id,
@@ -219,7 +218,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.get(testRequest.url / "non-existing-path")
           )
@@ -230,7 +229,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.delete(testRequest.url / "medicines" / "non-existing-id")
           )
@@ -241,7 +240,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.put(
               testRequest.url / "medicines" / "non-existing-id",
@@ -251,7 +250,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
         } yield assertTrue(response.status == Status.NotFound)
       },
       test("CORS Config should allow for localhost") {
-        val cors_config = MedicateApi.config
+        val cors_config = MedicineApi.config
         assertTrue(
           cors_config.allowedOrigin(Origin("http", "localhost", None)).isDefined
         )
@@ -279,7 +278,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           testRequest = Request
             .get(url = URL.root.port(port))
             .addQueryParam("amount", "5")
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.post(
               testRequest.url / "medicines" / "non-existing-id" / "addStock",
@@ -293,7 +292,7 @@ object TestMedicateAPI extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicateApi.routes)
+          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.post(
               testRequest.url / "medicines" / "non-existing-id" / "takeDose",

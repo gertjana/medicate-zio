@@ -15,12 +15,13 @@ object Main extends ZIOAppDefault {
 
   def port = 8080
   override def run = Server
-    .serve(medicate.MedicateApi.routes ++ infra.InfraApp.routes)
+    .serve(medicate.MedicineApi.routes ++ medicate.MedicineScheduleApi.routes ++infra.InfraApp.routes)
     .provide(
       ZLayer.succeed(Server.Config.default.port(port)),
       Server.live,
       Redis.local,
       ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
-      medicate.MedicineRepository.layer("prod:medicine:")
+      medicate.MedicineRepository.layer("prod:medicine:"),
+      medicate.MedicineScheduleRepository.layer("prod:schedule:")
     )
 }
