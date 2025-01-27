@@ -24,7 +24,10 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
   } yield schedules.toList.sorted
 
   def getById(id: ScheduleId): Task[Option[MedicineSchedule]] =
-    redis.get(s"$prefix$id").returning[String].map(_.flatMap(_.fromJson[MedicineSchedule].toOption))
+    redis
+      .get(s"$prefix$id")
+      .returning[String]
+      .map(_.flatMap(_.fromJson[MedicineSchedule].toOption))
 
   def update(id: ScheduleId, schedule: MedicineSchedule): Task[Boolean] =
     var updated = schedule.copy(id = id)
@@ -33,11 +36,17 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
   def delete(id: ScheduleId): Task[Unit] =
     redis.del(s"$prefix$id").unit
 
-  def getSchedule(): ZIO[MedicineScheduleRepository with MedicineRepository, Throwable, List[CombinedSchedule]] = for {
+  def getSchedule()
+      : ZIO[MedicineScheduleRepository with MedicineRepository, Throwable, List[
+        CombinedSchedule
+      ]] = for {
     schedules <- getAll
     medicines <- ZIO.serviceWithZIO[MedicineRepository](_.getAll)
-    groupedSchedules = schedules.groupBy(_.time).map {
-      case (time, schedules) => (time, schedules.map(m => (medicines.find(_.id==m.medicineId), m.amount)))
+    groupedSchedules = schedules.groupBy(_.time).map { case (time, schedules) =>
+      (
+        time,
+        schedules.map(m => (medicines.find(_.id == m.medicineId), m.amount))
+      )
     }
     combinedSchedules <- ZIO.succeed(groupedSchedules.map {
       case (time, grouped) => CombinedSchedule(time, grouped)
@@ -46,6 +55,10 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
 }
 
 object MedicineScheduleRepository {
-  def layer(prefix: String): ZLayer[Redis, Nothing, MedicineScheduleRepository] =
-    ZLayer.fromFunction((redis: Redis) => new MedicineScheduleRepository(redis, prefix))
+  def layer(
+      prefix: String
+  ): ZLayer[Redis, Nothing, MedicineScheduleRepository] =
+    ZLayer.fromFunction((redis: Redis) =>
+      new MedicineScheduleRepository(redis, prefix)
+    )
 }

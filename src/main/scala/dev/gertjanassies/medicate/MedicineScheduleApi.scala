@@ -10,35 +10,36 @@ import zio.Tag
 
 object MedicineScheduleApi {
   val config: CorsConfig = // remove in production
-  CorsConfig(
-    allowedOrigin = {
-      case origin if origin.renderedValue.contains("localhost") =>
-        Some(AccessControlAllowOrigin.Specific(origin))
-      case _ => None
-    }
-  )
-  def routes: Routes[MedicineRepository & MedicineScheduleRepository, Nothing] = Routes(
-    //create
+    CorsConfig(
+      allowedOrigin = {
+        case origin if origin.renderedValue.contains("localhost") =>
+          Some(AccessControlAllowOrigin.Specific(origin))
+        case _ => None
+      }
+    )
+  def routes: Routes[MedicineRepository & MedicineScheduleRepository, Nothing] =
+    Routes(
+      // create
       Method.POST / "schedules" -> handler { (request: Request) =>
         request.body.asString
-        .map(_.fromJson[MedicineSchedule])
-        .flatMap {
-          case Left(error: String) =>
-            ZIO.succeed(Response.text(error).status(Status.BadRequest))
-          case Right(schedule: MedicineSchedule) =>
-            ZIO.serviceWithZIO[MedicineScheduleRepository] { repo =>
-              for {
-              result <- repo.create(schedule)
-              } yield Response.json(schedule.toJson).status(Status.Created)
-            }
-        }
-        .catchAll(error =>
+          .map(_.fromJson[MedicineSchedule])
+          .flatMap {
+            case Left(error: String) =>
+              ZIO.succeed(Response.text(error).status(Status.BadRequest))
+            case Right(schedule: MedicineSchedule) =>
+              ZIO.serviceWithZIO[MedicineScheduleRepository] { repo =>
+                for {
+                  result <- repo.create(schedule)
+                } yield Response.json(schedule.toJson).status(Status.Created)
+              }
+          }
+          .catchAll(error =>
             ZIO.succeed(
-            Response.text(error.getMessage).status(Status.InternalServerError)
+              Response.text(error.getMessage).status(Status.InternalServerError)
             )
-        )
+          )
       },
-    // Read (all)
+      // Read (all)
       Method.GET / "schedules" -> handler {
         println("GET /schedules")
         ZIO
@@ -50,7 +51,7 @@ object MedicineScheduleApi {
             )
           )
       },
-    // Read (single)
+      // Read (single)
       Method.GET / "schedules" / string("id") -> handler {
         (id: String, request: Request) =>
           ZIO
@@ -63,7 +64,9 @@ object MedicineScheduleApi {
             )
             .catchAll(error =>
               ZIO.succeed(
-                Response.text(error.getMessage).status(Status.InternalServerError)
+                Response
+                  .text(error.getMessage)
+                  .status(Status.InternalServerError)
               )
             )
       },
@@ -84,23 +87,28 @@ object MedicineScheduleApi {
             }
             .catchAll(error =>
               ZIO.succeed(
-                Response.text(error.getMessage).status(Status.InternalServerError)
+                Response
+                  .text(error.getMessage)
+                  .status(Status.InternalServerError)
               )
             )
       },
       // Delete
       Method.DELETE / "schedules" / string("id") -> handler {
         (id: ScheduleId, request: Request) =>
-          ZIO.serviceWithZIO[MedicineScheduleRepository] { repo =>
-            for {
-              result <- repo.delete(id)
-            } yield Response.status(Status.NoContent)
-          }
-          .catchAll(error =>
-            ZIO.succeed(
-              Response.text(error.getMessage).status(Status.InternalServerError)
+          ZIO
+            .serviceWithZIO[MedicineScheduleRepository] { repo =>
+              for {
+                result <- repo.delete(id)
+              } yield Response.status(Status.NoContent)
+            }
+            .catchAll(error =>
+              ZIO.succeed(
+                Response
+                  .text(error.getMessage)
+                  .status(Status.InternalServerError)
+              )
             )
-          )
       },
       // Combined
       Method.GET / "schedules" / "combined" -> handler {
@@ -113,5 +121,5 @@ object MedicineScheduleApi {
             )
           )
       }
-  ) @@ cors(config)
+    ) @@ cors(config)
 }

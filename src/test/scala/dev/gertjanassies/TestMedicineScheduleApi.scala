@@ -35,7 +35,8 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
       amount = 1.0
     )
     val testSchedule2 = testSchedule1.copy(id = "2", medicineId = "2")
-    val testSchedule3 = testSchedule1.copy(id = "3", medicineId = "1", time = "09:00")
+    val testSchedule3 =
+      testSchedule1.copy(id = "3", medicineId = "1", time = "09:00")
 
     val testSuite = suite("Medicate Medicine Schedule API should ")(
       test("respond correctly to getting a list of medications") {
@@ -52,8 +53,14 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
       } @@ TestAspect.before(
         for {
           redis <- ZIO.service[Redis]
-          _ <- redis.set(s"${medicine_prefix}${testMedicine1.id}", testMedicine1.toJson)
-          _ <- redis.set(s"${medicine_prefix}${testMedicine2.id}", testMedicine2.toJson)
+          _ <- redis.set(
+            s"${medicine_prefix}${testMedicine1.id}",
+            testMedicine1.toJson
+          )
+          _ <- redis.set(
+            s"${medicine_prefix}${testMedicine2.id}",
+            testMedicine2.toJson
+          )
           _ <- redis.set(s"$prefix${testSchedule1.id}", testSchedule1.toJson)
           _ <- redis.set(s"$prefix${testSchedule2.id}", testSchedule2.toJson)
           _ <- redis.set(s"$prefix${testSchedule3.id}", testSchedule3.toJson)
@@ -74,7 +81,9 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
           _ <- TestServer.addRoutes(medicate.MedicineScheduleApi.routes)
-          response <- client.batched(Request.get(testRequest.url / "schedules" / testSchedule1.id))
+          response <- client.batched(
+            Request.get(testRequest.url / "schedules" / testSchedule1.id)
+          )
           body <- response.body.asString
           medicine = body.fromJson[medicate.MedicineSchedule]
         } yield assertTrue(response.status == Status.Ok) &&
@@ -167,7 +176,9 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           _ <- TestServer.addRoutes(medicate.MedicineScheduleApi.routes)
-          response <- client.batched(Request.get(URL.root.port(port) / "schedules" / "combined"))
+          response <- client.batched(
+            Request.get(URL.root.port(port) / "schedules" / "combined")
+          )
           body <- response.body.asString
           combined = body.fromJson[List[medicate.CombinedSchedule]]
         } yield assertTrue(response.status == Status.Ok) &&

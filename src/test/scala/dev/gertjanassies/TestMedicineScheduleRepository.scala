@@ -74,12 +74,14 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
         )
         val schedule2 = schedule1.copy(id = "2", medicineId = "2")
         val schedule3 = schedule1.copy(id = "3", time = "09:00")
-        val expected = List(CombinedSchedule(
+        val expected = List(
+          CombinedSchedule(
             time = "09:00",
             medicines = List(
-              (Some(medicine1), 1.0),
-            ),
-          ), CombinedSchedule(
+              (Some(medicine1), 1.0)
+            )
+          ),
+          CombinedSchedule(
             time = "12:00",
             medicines = List(
               (Some(medicine1), 1.0),
@@ -99,8 +101,7 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
           actual <- ms_repo.getSchedule()
           _ <- ZIO.succeed(println(actual))
           _ <- ZIO.succeed(println(expected))
-        } yield (assert(actual)(equalTo(expected))
-        )
+        } yield (assert(actual)(equalTo(expected)))
       } @@ TestAspect.after(
         for {
           redis <- ZIO.service[Redis]

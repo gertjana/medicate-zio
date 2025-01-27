@@ -29,7 +29,7 @@ final case class Medicine(
     )
 
   def takeDose(): Medicine =
-    val resultingStock = this.stock //TODO - (dose * amount.getOrElse(0))
+    val resultingStock = this.stock // TODO - (dose * amount.getOrElse(0))
     this.copy(
       stock = resultingStock,
       daysLeft = calcDaysLeft(resultingStock, amount)
@@ -49,8 +49,8 @@ object Medicine {
       stock: Double,
       amount: Option[Double]
   ): Option[Int] =
-    amount match  {
-      case None => None
+    amount match {
+      case None    => None
       case Some(0) => None
       case Some(v) => Some((stock / v).toInt)
     }
