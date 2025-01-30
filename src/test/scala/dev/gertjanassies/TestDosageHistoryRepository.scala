@@ -6,8 +6,6 @@ import zio.redis._
 import zio.redis.embedded.EmbeddedRedis
 import zio.schema.{Schema}
 import zio.schema.codec.{BinaryCodec, ProtobufCodec}
-import dev.gertjanassies.medicate.DosageHistoryRepository
-import dev.gertjanassies.medicate.DosageHistory
 import medicate._
 
 object TestDosageHistoryRepository extends ZIOSpecDefault {
