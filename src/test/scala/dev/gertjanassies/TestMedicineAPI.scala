@@ -156,15 +156,10 @@ object TestMedicineAPI extends ZIOSpecDefault {
           testRequest = Request.get(url = URL.root.port(port))
           _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
-            Request.delete(testRequest.url / "medicines" / testMedicine3.id)
+            Request.delete(testRequest.url / "medicines" / testMedicine.id)
           )
         } yield assertTrue(response.status == Status.NoContent)
-      } @@ TestAspect.before(
-        for {
-          redis <- ZIO.service[Redis]
-          _ <- redis.set(s"$prefix${testMedicine3.id}", testMedicine3.toJson)
-        } yield ()
-      ),
+      },
       test("not be able to create a medicine with invalid json body") {
         for {
           client <- ZIO.service[Client]

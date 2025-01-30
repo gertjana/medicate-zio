@@ -44,9 +44,9 @@ object TestDosageHistoryRepository extends ZIOSpecDefault {
       } @@ TestAspect.after(
         for {
           redis <- ZIO.service[Redis]
-          _ <- redis.del(s"${dosage_prefix}test1")
-          _ <- redis.del(s"${dosage_prefix}test2")
-          _ <- redis.del(s"${dosage_prefix}test3")
+          _ <- redis.del(s"${dosage_prefix}2025-01-01-09:00")
+          _ <- redis.del(s"${dosage_prefix}2025-01-01-12:00")
+          _ <- redis.del(s"${dosage_prefix}2025-01-02-12:00")
         } yield ()
       )
     }

@@ -45,7 +45,6 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
     schedules <- getAll
     medicines <- ZIO.serviceWithZIO[MedicineRepository](_.getAll)
     dosageHistory <- ZIO.serviceWithZIO[DosageHistoryRepository](_.getToday)
-    _ <- ZIO.succeed(println(dosageHistory))
     groupedSchedules = schedules.groupBy(_.time).map { case (time, schedules) =>
       (
         time,

@@ -51,12 +51,7 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
           _ <- repo.delete(s.id)
           gotten <- repo.getById(s.id)
         } yield assert(gotten)(isNone)
-      } @@ TestAspect.after(
-        for {
-          redis <- ZIO.service[Redis]
-          _ <- redis.del(s"${schedule_prefix}test_delete")
-        } yield ()
-      ),
+      },
       test("to return a daily schedule") {
         val medicine1 = Medicine.create(
           id = "1",
