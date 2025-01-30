@@ -27,6 +27,12 @@ object TestMedicineRepository extends ZIOSpecDefault {
 
   def spec = {
     val testSuite = suite("MedicineRepository should")(
+      test("be able to get an empty list") {
+        for {
+          repo <- ZIO.service[MedicineRepository]
+          medicines <- repo.getAll
+        } yield assert(medicines)(isEmpty)
+      },
       test("be able set and get a medication") {
         val m = createTestMedicine(id = "test_set_get")
         for {
