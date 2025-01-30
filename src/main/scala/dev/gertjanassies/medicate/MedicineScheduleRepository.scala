@@ -8,19 +8,24 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
 
   def create(schedule: MedicineSchedule): ZIO[Any, RedisError, Boolean] =
     redis.set(s"$prefix${schedule.id}", schedule.toJson)
-
   def getAll: Task[List[MedicineSchedule]] = for {
     keys <- redis
       .keys(s"$prefix*") // keys is blocking, replace with scan
       .returning[String]
-    values <- redis.mGet(keys.head, keys.tail: _*).returning[String]
-    schedules <- ZIO.succeed(
-      values
-        .map(_.flatMap(_.fromJson[MedicineSchedule].toOption))
-        .filter(_.isDefined)
-        .map(_.get)
-    )
-  } yield schedules.toList.sorted
+      schedules <- if (keys.isEmpty) {
+        ZIO.succeed(List.empty)
+      } else {
+        for {
+          values <- redis.mGet(keys.head, keys.tail: _*).returning[String]
+          schedules <- ZIO.succeed(
+          values
+            .map(_.flatMap(_.fromJson[MedicineSchedule].toOption))
+            .filter(_.isDefined)
+            .map(_.get)
+          )
+        } yield schedules.toList.sorted
+      }
+    } yield schedules
 
   def getById(id: ScheduleId): Task[Option[MedicineSchedule]] =
     redis

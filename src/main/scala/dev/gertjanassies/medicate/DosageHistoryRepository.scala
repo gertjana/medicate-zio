@@ -27,13 +27,15 @@ class DosageHistoryRepository(redis: Redis, prefix: String) {
               .map(_.get)
               .toList
           )
-  } yield histories.sorted
+    sortedHistories <- ZIO.succeed(histories.sorted)
+  } yield sortedHistories
 
   def getToday: Task[List[DosageHistory]] = for {
     histories <- getAll
     today <- ZIO.succeed(LocalDate.now().toString)
     todayHistories <- ZIO.succeed(histories.filter(_.date == today))
-  } yield todayHistories.sorted
+    sortedTodayHistories <- ZIO.succeed(todayHistories.sorted)
+  } yield sortedTodayHistories
 }
 
 object DosageHistoryRepository {
