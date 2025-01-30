@@ -13,8 +13,9 @@ class MedicineRepository(redis: Redis, prefix: String) {
     keys <- redis
       .keys(s"$prefix*") // keys is blocking, replace with scan
       .returning[String]
-    values <- if (keys.isEmpty) ZIO.succeed(List.empty) 
-              else redis.mGet(keys.head, keys.tail: _*).returning[String]
+    values <-
+      if (keys.isEmpty) ZIO.succeed(List.empty)
+      else redis.mGet(keys.head, keys.tail: _*).returning[String]
     medicines <- ZIO.succeed(
       values
         .map(_.flatMap(_.fromJson[Medicine].toOption))
