@@ -16,7 +16,10 @@ object Main extends ZIOAppDefault {
   def port = 8080
   override def run = Server
     .serve(
-      medicate.MedicineApi.routes ++ medicate.MedicineScheduleApi.routes ++ infra.InfraApp.routes
+      medicate.MedicineApi.routes ++ 
+      medicate.MedicineScheduleApi.routes ++ 
+      medicate.DosageHistoryApi.routes ++
+      infra.InfraApp.routes
     )
     .provide(
       ZLayer.succeed(Server.Config.default.port(port)),
@@ -24,6 +27,7 @@ object Main extends ZIOAppDefault {
       Redis.local,
       ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
       medicate.MedicineRepository.layer("prod:medicine:"),
-      medicate.MedicineScheduleRepository.layer("prod:schedule:")
+      medicate.MedicineScheduleRepository.layer("prod:schedule:"),
+      medicate.DosageHistoryRepository.layer("prod:dosage:")
     )
 }
