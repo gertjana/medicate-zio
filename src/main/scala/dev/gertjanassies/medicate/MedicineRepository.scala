@@ -21,16 +21,12 @@ class MedicineRepository(redis: Redis, prefix: String) {
         .map(_.get)
     )
   } yield medicines.toList.sorted
-    .map(m => m.copy(daysLeft = Medicine.calcDaysLeft(m.stock, m.amount)))
 
   def getById(id: String): Task[Option[Medicine]] =
     redis
       .get(s"$prefix$id")
       .returning[String]
       .map(_.flatMap(_.fromJson[Medicine].toOption))
-      .map(o =>
-        o.map(m => m.copy(daysLeft = Medicine.calcDaysLeft(m.stock, m.amount)))
-      )
 
   def update(id: String, medicine: Medicine): Task[Boolean] =
     redis.set(s"$prefix$id", medicine.toJson)

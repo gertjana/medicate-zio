@@ -15,6 +15,7 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
   }
   val schedule_prefix = "test:repo:schedule:"
   val medicine_prefix = "test:repo:medicine:"
+  val dosage_prefix = "test:repo:dosage:"
   def spec = {
     val testSuite = suite("MedicineRepository should")(
       test("be able to set and get a schedule") {
@@ -56,14 +57,13 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
           _ <- redis.del(s"${schedule_prefix}test_delete")
         } yield ()
       ),
-      test("to return a combined schedule") {
+      test("to return a daily schedule") {
         val medicine1 = Medicine.create(
           id = "1",
           name = "test_medicine1",
           dose = 1.0,
           unit = "mg",
-          stock = 10,
-          amount = Some(1.0)
+          stock = 10
         )
         val medicine2 = medicine1.copy(id = "2", name = "test_medicine2")
         val schedule1 = MedicineSchedule.create(
@@ -75,13 +75,13 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
         val schedule2 = schedule1.copy(id = "2", medicineId = "2")
         val schedule3 = schedule1.copy(id = "3", time = "09:00")
         val expected = List(
-          CombinedSchedule(
+          DailySchedule(
             time = "09:00",
             medicines = List(
               (Some(medicine1), 1.0)
             )
           ),
-          CombinedSchedule(
+          DailySchedule(
             time = "12:00",
             medicines = List(
               (Some(medicine1), 1.0),
@@ -99,8 +99,6 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
           _ <- ms_repo.create(schedule2)
           _ <- ms_repo.create(schedule3)
           actual <- ms_repo.getSchedule()
-          _ <- ZIO.succeed(println(actual))
-          _ <- ZIO.succeed(println(expected))
         } yield (assert(actual)(equalTo(expected)))
       } @@ TestAspect.after(
         for {
@@ -119,14 +117,16 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
         EmbeddedRedis.layer,
         Redis.singleNode,
         MedicineRepository.layer(medicine_prefix),
-        MedicineScheduleRepository.layer(schedule_prefix)
+        MedicineScheduleRepository.layer(schedule_prefix),
+        DosageHistoryRepository.layer(dosage_prefix)
       )
     } else {
       testSuite.provideShared(
         ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
         Redis.local,
         MedicineRepository.layer(medicine_prefix),
-        MedicineScheduleRepository.layer(schedule_prefix)
+        MedicineScheduleRepository.layer(schedule_prefix),
+        DosageHistoryRepository.layer(dosage_prefix)
       )
     }
   }

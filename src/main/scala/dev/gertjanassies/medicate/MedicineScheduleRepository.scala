@@ -20,7 +20,6 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
         .filter(_.isDefined)
         .map(_.get)
     )
-    _ <- ZIO.succeed(println(schedules))
   } yield schedules.toList.sorted
 
   def getById(id: ScheduleId): Task[Option[MedicineSchedule]] =
@@ -36,22 +35,56 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
   def delete(id: ScheduleId): Task[Unit] =
     redis.del(s"$prefix$id").unit
 
-  def getSchedule()
-      : ZIO[MedicineScheduleRepository with MedicineRepository, Throwable, List[
-        CombinedSchedule
-      ]] = for {
+  def getSchedule(): ZIO[
+    MedicineScheduleRepository
+      with MedicineRepository
+      with DosageHistoryRepository,
+    Throwable,
+    List[DailySchedule]
+  ] = for {
     schedules <- getAll
     medicines <- ZIO.serviceWithZIO[MedicineRepository](_.getAll)
+    dosageHistory <- ZIO.serviceWithZIO[DosageHistoryRepository](_.getToday)
+    _ <- ZIO.succeed(println(dosageHistory))
     groupedSchedules = schedules.groupBy(_.time).map { case (time, schedules) =>
       (
         time,
-        schedules.map(m => (medicines.find(_.id == m.medicineId), m.amount))
+        schedules.map(m => (medicines.find(_.id == m.medicineId), m.amount)),
       )
     }
-    combinedSchedules <- ZIO.succeed(groupedSchedules.map {
-      case (time, grouped) => CombinedSchedule(time, grouped)
+    dailySchedules <- ZIO.succeed(groupedSchedules.map { case (time, grouped) =>
+      DailySchedule(time, grouped, dosageHistory.find(_.time == time).map(_ => true))
+      // DailySchedule(time, grouped)
     })
-  } yield combinedSchedules.toList.sorted
+  } yield dailySchedules.toList.sorted
+
+  def addtakendosages(time: String, date: String): ZIO[
+    MedicineScheduleRepository
+      with MedicineRepository
+      with DosageHistoryRepository,
+    RedisError,
+    Boolean
+  ] = {
+    for {
+      schedules <- getSchedule().mapError(_ =>
+        RedisError.ProtocolError("Failed to get schedule")
+      )
+      schedule <- ZIO.succeed(schedules.find(_.time == time).get)
+      dosageRepository <- ZIO.service[DosageHistoryRepository]
+      medicines <- ZIO.foreach(schedule.medicines) { medicine =>
+        {
+          dosageRepository.create(
+            DosageHistory(
+              date = date,
+              time = time,
+              medicineId = medicine._1.get.id,
+              amount = medicine._2
+            )
+          )
+        }
+      }
+    } yield true
+  }
 }
 
 object MedicineScheduleRepository {

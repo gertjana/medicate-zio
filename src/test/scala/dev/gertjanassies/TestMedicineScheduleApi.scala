@@ -17,13 +17,13 @@ import zio.http.Header.Origin
 object TestMedicineScheduleApi extends ZIOSpecDefault {
   val prefix = "test:api:schedule:"
   val medicine_prefix = "test:api:medicine:"
+  val dosage_prefix = "test:api:dosage:"
   def spec = {
     val testMedicine1 = Medicine.create(
       id = "1",
       name = "Test",
       dose = 1.0,
       unit = "mg",
-      amount = Some(2.0),
       stock = 10
     )
     val testMedicine2 = testMedicine1.copy(id = "2", name = "Test2")
@@ -39,7 +39,7 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
       testSchedule1.copy(id = "3", medicineId = "1", time = "09:00")
 
     val testSuite = suite("Medicate Medicine Schedule API should ")(
-      test("respond correctly to getting a list of medications") {
+      test("respond correctly to getting a list of schedules") {
         for {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
@@ -75,7 +75,7 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
           _ <- redis.del(s"${medicine_prefix}${testMedicine2.id}")
         } yield ()
       ),
-      test("respond correctly to getting a single medication") {
+      test("respond correctly to getting a single schedule") {
         for {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
@@ -100,7 +100,7 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
           _ <- redis.del(s"$prefix${testSchedule1.id}")
         } yield ()
       ),
-      test("respond correctly to creating a medication") {
+      test("respond correctly to creating a schedule") {
         for {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
@@ -122,7 +122,7 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
           _ <- redis.del(s"$prefix${testSchedule1.id}")
         } yield ()
       ),
-      test("respond correctly to updating a medication") {
+      test("respond correctly to updating a schedule") {
         for {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
@@ -171,18 +171,18 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
           _ <- redis.del(s"$prefix${testSchedule1.id}")
         } yield ()
       ),
-      test("be able to get a combined schedule") {
+      test("be able to get a daily schedule") {
         for {
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           _ <- TestServer.addRoutes(medicate.MedicineScheduleApi.routes)
           response <- client.batched(
-            Request.get(URL.root.port(port) / "schedules" / "combined")
+            Request.get(URL.root.port(port) / "schedules" / "daily")
           )
           body <- response.body.asString
-          combined = body.fromJson[List[medicate.CombinedSchedule]]
+          daily = body.fromJson[List[medicate.DailySchedule]]
         } yield assertTrue(response.status == Status.Ok) &&
-          assertTrue(combined.isRight)
+          assertTrue(daily.isRight)
       } @@ TestAspect.before(
         for {
           redis <- ZIO.service[Redis]
@@ -226,6 +226,7 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
         Redis.singleNode,
         MedicineScheduleRepository.layer(prefix),
         MedicineRepository.layer(medicine_prefix),
+        DosageHistoryRepository.layer(prefix),
         TestServer.layer,
         Client.default,
         ZLayer.succeed(Server.Config.default.onAnyOpenPort),
@@ -238,6 +239,7 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
         Redis.local,
         MedicineScheduleRepository.layer(prefix),
         MedicineRepository.layer(medicine_prefix),
+        DosageHistoryRepository.layer(dosage_prefix),
         TestServer.layer,
         Client.default,
         ZLayer.succeed(Server.Config.default.onAnyOpenPort),

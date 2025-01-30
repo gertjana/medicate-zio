@@ -145,27 +145,5 @@ object MedicineApi {
             )
         }
     },
-    // take Dose
-    Method.POST / "medicines" / string("id") / "takeDose" -> handler {
-      (id: String, request: Request) =>
-        ZIO
-          .serviceWithZIO[MedicineRepository] { repo =>
-            repo
-              .getById(id)
-              .flatMap {
-                case Some(medicine) =>
-                  var updatedMedicine = medicine.takeDose()
-                  repo.update(id, updatedMedicine) *>
-                    ZIO.succeed(Response.json(updatedMedicine.toJson))
-                case None => ZIO.succeed(Response.status(Status.NotFound))
-              }
-
-          }
-          .catchAll(error =>
-            ZIO.succeed(
-              Response.text(error.getMessage).status(Status.InternalServerError)
-            )
-          )
-    }
   ) @@ cors(config) // routes
 }

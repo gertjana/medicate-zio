@@ -24,7 +24,6 @@ object TestMedicineAPI extends ZIOSpecDefault {
     name = "Test",
     dose = 1.0,
     unit = "mg",
-    amount = Some(2.0),
     stock = 10
   )
   val testMedicine2 = testMedicine.copy(id = "test2")
@@ -126,25 +125,6 @@ object TestMedicineAPI extends ZIOSpecDefault {
           response <- client.batched(
             Request.post(
               testRequest.url / "medicines" / testMedicine.id / "addStock",
-              Body.empty
-            )
-          )
-          body <- response.body.asString
-        } yield assertTrue(
-          response.status == Status.Ok && body
-            .fromJson[Medicine]
-            .map(_.stock) == Right(15.0)
-        )
-      },
-      test("be able to take a dose") {
-        for {
-          client <- ZIO.service[Client]
-          port <- ZIO.serviceWithZIO[Server](_.port)
-          testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
-          response <- client.batched(
-            Request.post(
-              testRequest.url / "medicines" / testMedicine.id / "takeDose",
               Body.empty
             )
           )

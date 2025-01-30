@@ -33,20 +33,21 @@ object MedicineSchedule {
     MedicineSchedule(id, time, medicineId, amount)
 }
 
-final case class CombinedSchedule(
+final case class DailySchedule(
     time: String,
-    medicines: List[(Option[Medicine], Double)]
+    medicines: List[(Option[Medicine], Double)],
+    taken: Option[Boolean] = None
 ) {}
 
-object CombinedSchedule {
-  implicit val encoder: JsonEncoder[CombinedSchedule] =
-    DeriveJsonEncoder.gen[CombinedSchedule]
-  implicit val decoder: JsonDecoder[CombinedSchedule] =
-    DeriveJsonDecoder.gen[CombinedSchedule]
+object DailySchedule {
+  implicit val encoder: JsonEncoder[DailySchedule] =
+    DeriveJsonEncoder.gen[DailySchedule]
+  implicit val decoder: JsonDecoder[DailySchedule] =
+    DeriveJsonDecoder.gen[DailySchedule]
 
-  implicit val itemSchema: Schema[CombinedSchedule] =
-    DeriveSchema.gen[CombinedSchedule]
+  implicit val itemSchema: Schema[DailySchedule] =
+    DeriveSchema.gen[DailySchedule]
 
-  implicit def orderingById[A <: CombinedSchedule]: Ordering[A] =
+  implicit def orderingById[A <: DailySchedule]: Ordering[A] =
     Ordering.by(schedule => schedule.time)
 }

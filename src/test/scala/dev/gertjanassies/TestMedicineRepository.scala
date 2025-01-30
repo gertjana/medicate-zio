@@ -21,7 +21,6 @@ object TestMedicineRepository extends ZIOSpecDefault {
       name = "Test",
       dose = 1.0,
       unit = "mg",
-      amount = Some(2.0),
       stock = 10
     )
   }
@@ -67,10 +66,7 @@ object TestMedicineRepository extends ZIOSpecDefault {
           redis <- ZIO.service[Redis]
           repo <- ZIO.service[MedicineRepository]
           _ <- repo.create(m)
-          updated = m.copy(
-            amount = Some(1.0),
-            daysLeft = Medicine.calcDaysLeft(m.stock, Some(1.0))
-          )
+          updated = m.copy(stock = 20)
           _ <- repo.update(m.id, updated)
           gotten <- repo.getById(m.id)
         } yield assert(gotten)(isSome[medicate.Medicine](equalTo(updated)))
