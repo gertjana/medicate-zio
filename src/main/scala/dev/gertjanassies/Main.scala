@@ -16,10 +16,10 @@ object Main extends ZIOAppDefault {
   def port = 8080
   override def run = Server
     .serve(
-      medicate.MedicineApi.routes ++ 
-      medicate.MedicineScheduleApi.routes ++ 
-      medicate.DosageHistoryApi.routes ++
-      infra.InfraApp.routes
+      medicate.MedicineApi.routes ++
+        medicate.MedicineScheduleApi.routes ++
+        medicate.DosageHistoryApi.routes ++
+        infra.InfraApp.routes
     )
     .provide(
       ZLayer.succeed(Server.Config.default.port(port)),

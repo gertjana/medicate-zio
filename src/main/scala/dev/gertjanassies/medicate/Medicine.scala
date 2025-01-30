@@ -14,14 +14,14 @@ final case class Medicine(
     name: String,
     dose: Double,
     unit: String,
-    stock: Double,
+    stock: Double
 ) extends Medication {
   import Medicine._
 
   def addStock(newStock: Int): Medicine =
     val resultingStock = this.stock + newStock
     this.copy(
-      stock = resultingStock,
+      stock = resultingStock
     )
 }
 

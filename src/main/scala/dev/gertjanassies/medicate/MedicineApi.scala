@@ -144,6 +144,6 @@ object MedicineApi {
                 .status(Status.BadRequest)
             )
         }
-    },
+    }
   ) @@ cors(config) // routes
 }

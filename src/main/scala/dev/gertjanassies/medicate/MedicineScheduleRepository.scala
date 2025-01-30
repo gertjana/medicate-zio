@@ -49,12 +49,16 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
     groupedSchedules = schedules.groupBy(_.time).map { case (time, schedules) =>
       (
         time,
-        schedules.map(m => (medicines.find(_.id == m.medicineId), m.amount)),
+        schedules.map(m => (medicines.find(_.id == m.medicineId), m.amount))
       )
     }
     dailySchedules <- ZIO.succeed(groupedSchedules.map { case (time, grouped) =>
-      DailySchedule(time, grouped, dosageHistory.find(_.time == time).map(_ => true))
-      // DailySchedule(time, grouped)
+      DailySchedule(
+        time,
+        grouped,
+        dosageHistory.find(_.time == time).map(_ => true)
+      )
+    // DailySchedule(time, grouped)
     })
   } yield dailySchedules.toList.sorted
 

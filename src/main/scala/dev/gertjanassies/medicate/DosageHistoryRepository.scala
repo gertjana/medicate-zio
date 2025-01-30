@@ -14,14 +14,19 @@ class DosageHistoryRepository(redis: Redis, prefix: String) {
 
   def getAll: Task[List[DosageHistory]] = for {
     keys <- redis.keys(s"$prefix*").returning[String]
-    histories <- if (keys.isEmpty) ZIO.succeed(List.empty[DosageHistory])
-    else redis.mGet(keys.head, keys.tail: _*).returning[String].map(values =>
-      values
-        .map(_.flatMap(_.fromJson[DosageHistory].toOption))
-        .filter(_.isDefined)
-        .map(_.get)
-        .toList
-    )
+    histories <-
+      if (keys.isEmpty) ZIO.succeed(List.empty[DosageHistory])
+      else
+        redis
+          .mGet(keys.head, keys.tail: _*)
+          .returning[String]
+          .map(values =>
+            values
+              .map(_.flatMap(_.fromJson[DosageHistory].toOption))
+              .filter(_.isDefined)
+              .map(_.get)
+              .toList
+          )
   } yield histories.sorted
 
   def getToday: Task[List[DosageHistory]] = for {

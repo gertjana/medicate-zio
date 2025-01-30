@@ -20,7 +20,8 @@ object TestDosageHistoryRepository extends ZIOSpecDefault {
     medicineId = "test1",
     amount = 1.0
   )
-  val dosage_history2 = dosage_history.copy(medicineId = "test2", time = "09:00")
+  val dosage_history2 =
+    dosage_history.copy(medicineId = "test2", time = "09:00")
   val dosage_history3 = dosage_history.copy(date = "2025-01-02")
 
   def spec = {
@@ -34,9 +35,11 @@ object TestDosageHistoryRepository extends ZIOSpecDefault {
           _ <- repo.create(dosage_history3)
           history <- ZIO.serviceWithZIO[DosageHistoryRepository](_.getAll)
         } yield assertTrue(
-                  history.length == 3 && 
-                  history.contains(dosage_history) && history.contains(dosage_history2) && history.contains(dosage_history3) &&
-                  history.head == dosage_history3 && history.last == dosage_history
+          history.length == 3 &&
+            history.contains(dosage_history) && history.contains(
+              dosage_history2
+            ) && history.contains(dosage_history3) &&
+            history.head == dosage_history3 && history.last == dosage_history
         )
       } @@ TestAspect.after(
         for {
@@ -46,14 +49,14 @@ object TestDosageHistoryRepository extends ZIOSpecDefault {
           _ <- redis.del(s"${dosage_prefix}test3")
         } yield ()
       )
-    }    
+    }
     if (scala.sys.env.contains("EMBEDDED_REDIS")) {
-        testSuite.provideShared(
-          ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
-          EmbeddedRedis.layer,
-          Redis.singleNode,
-          DosageHistoryRepository.layer(dosage_prefix)
-        )
+      testSuite.provideShared(
+        ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
+        EmbeddedRedis.layer,
+        Redis.singleNode,
+        DosageHistoryRepository.layer(dosage_prefix)
+      )
     } else {
       testSuite.provideShared(
         ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),
