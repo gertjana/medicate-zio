@@ -4,6 +4,7 @@ import zio.json._
 import zio.schema._
 
 final case class DosageHistory(
+    id: String,
     date: String,
     time: String,
     medicineId: MedicineId,

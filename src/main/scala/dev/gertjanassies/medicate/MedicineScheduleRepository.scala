@@ -6,8 +6,13 @@ import zio.json._
 
 class MedicineScheduleRepository(redis: Redis, prefix: String) {
 
-  def create(schedule: MedicineSchedule): ZIO[Any, RedisError, Boolean] =
-    redis.set(s"$prefix${schedule.id}", schedule.toJson)
+  def create(schedule: MedicineSchedule): ZIO[Any, RedisError, String] =
+    for {
+      id <- ZIO.succeed(java.util.UUID.randomUUID().toString)
+      _ <- redis.set(s"$prefix$id", schedule.copy(id = id).toJson)
+    } yield id
+
+
   def getAll: Task[List[MedicineSchedule]] = for {
     keys <- redis
       .keys(s"$prefix*") // keys is blocking, replace with scan
@@ -41,7 +46,7 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
   def delete(id: ScheduleId): Task[Unit] =
     redis.del(s"$prefix$id").unit
 
-  def getSchedule(): ZIO[
+  def getDailySchedule(): ZIO[
     MedicineScheduleRepository
       with MedicineRepository
       with DosageHistoryRepository,
@@ -59,9 +64,9 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
     }
     dailySchedules <- ZIO.succeed(groupedSchedules.map { case (time, grouped) =>
       DailySchedule(
-        time,
-        grouped,
-        dosageHistory.find(_.time == time).map(_ => true)
+        time=time,
+        medicines=grouped,
+        taken=dosageHistory.find(_.time == time).map(_ => true)
       )
     })
   } yield dailySchedules.toList.sorted
@@ -74,7 +79,7 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
     Boolean
   ] = {
     for {
-      schedules <- getSchedule().mapError(_ =>
+      schedules <- getDailySchedule().mapError(_ =>
         RedisError.ProtocolError("Failed to get schedule")
       )
       schedule <- ZIO.succeed(schedules.find(_.time == time).get)
@@ -83,6 +88,7 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
         {
           dosageRepository.create(
             DosageHistory(
+              id = "",
               date = date,
               time = time,
               medicineId = medicine._1.get.id,

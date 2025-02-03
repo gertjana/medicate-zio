@@ -109,7 +109,7 @@ object MedicineScheduleApi {
     // Daily Schedule
     Method.GET / "schedules" / "daily" -> handler {
       ZIO
-        .serviceWithZIO[MedicineScheduleRepository](_.getSchedule())
+        .serviceWithZIO[MedicineScheduleRepository](_.getDailySchedule())
         .map(daily => Response.json(daily.toJson))
         .catchAll(error =>
           ZIO.succeed(
@@ -125,7 +125,7 @@ object MedicineScheduleApi {
             .serviceWithZIO[MedicineScheduleRepository] { repo =>
               for {
                 _ <- repo.addtakendosages(time, date)
-                daily <- repo.getSchedule()
+                daily <- repo.getDailySchedule()
               } yield Response.json(daily.toJson)
             }
             .catchAll(error =>

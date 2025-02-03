@@ -21,7 +21,7 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
       test("be able to get an empty schedule") {
         for {
           repo <- ZIO.service[MedicineScheduleRepository]
-          schedule <- repo.getSchedule()
+          schedule <- repo.getDailySchedule()
         } yield assert(schedule)(isEmpty)
       },
       test("be able to set and get a schedule") {
@@ -42,12 +42,13 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
           redis <- ZIO.service[Redis]
           repo <- ZIO.service[MedicineScheduleRepository]
           m_repo <- ZIO.service[MedicineRepository]
-          id <- m_repo.create(medicine)
-          _ <- repo.create(s.copy(medicineId = id))
-          gotten <- repo.getById(s.id)
-        } yield assert(gotten)(
-          isSome[medicate.MedicineSchedule](equalTo(s.copy(medicineId = id)))
-        )
+          m_id <- m_repo.create(medicine)
+          id <- repo.create(s.copy(medicineId = m_id))
+          gotten <- repo.getById(id)
+        } yield assertTrue(gotten.isDefined) &&
+          assertTrue(gotten.get.medicineId == m_id) &&
+          assertTrue(gotten.get.time == s.time) &&
+          assertTrue(gotten.get.amount == s.amount)
       },
       test("be able to delete a schedule") {
         val s = MedicineSchedule.create(
@@ -59,9 +60,9 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
         for {
           redis <- ZIO.service[Redis]
           repo <- ZIO.service[MedicineScheduleRepository]
-          _ <- repo.create(s)
-          _ <- repo.delete(s.id)
-          gotten <- repo.getById(s.id)
+          id <- repo.create(s)
+          _ <- repo.delete(id)
+          gotten <- repo.getById(id)
         } yield assert(gotten)(isNone)
       },
       test("to return a daily schedule") {
@@ -91,12 +92,41 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
           _ <- ms_repo.create(schedule1.copy(medicineId = id1))
           _ <- ms_repo.create(schedule2.copy(medicineId = id2))
           _ <- ms_repo.create(schedule3.copy(medicineId = id1))
-          actual <- ms_repo.getSchedule()
-        } yield (assertTrue(actual.length == 2) &&
+          actual <- ms_repo.getDailySchedule()
+        } yield (assertTrue(actual.length == 2) && 
           assertTrue(actual.head.time == "09:00") &&
           assertTrue(actual.head.medicines.length == 1) &&
           assertTrue(actual.last.time == "12:00") &&
-          assertTrue(actual.last.medicines.length == 2))
+          assertTrue(actual.last.medicines.length == 2)
+        )
+      },
+      test("be able to add taken dosages") {
+        val s = MedicineSchedule.create(
+          id = "test_add_taken_dosages",
+          medicineId = "",
+          time = "12:00",
+          amount = 1.0
+        )
+        val medicine1 = Medicine(
+          id = "",
+          name = "test_medicine1",
+          dose = 1.0,
+          unit = "mg",
+          stock = 10
+        )
+        for {
+          redis <- ZIO.service[Redis]
+          repo <- ZIO.service[MedicineScheduleRepository]
+          m_repo <- ZIO.service[MedicineRepository]
+          m_id <- m_repo.create(medicine1)
+          id <- repo.create(s.copy(medicineId = m_id))
+          _ <- repo.addtakendosages("12:00", "2024-01-01")  
+          actual <- repo.getDailySchedule()
+        } yield (assertTrue(actual.length == 1) &&
+          assertTrue(actual.head.time == "12:00") &&
+          assertTrue(actual.head.medicines.length == 1) &&
+          assertTrue(actual.head.medicines.head._1.isDefined)
+        )
       }
     ) @@ TestAspect.sequential
       @@ TestAspect.after(
