@@ -81,7 +81,7 @@ object MedicineApi {
                 repo.getById(id).flatMap {
                   case Some(_) =>
                     repo.update(id, medicine) *>
-                      ZIO.succeed(Response.json(medicine.copy(id=id).toJson))
+                      ZIO.succeed(Response.json(medicine.copy(id = id).toJson))
                   case None => ZIO.succeed(Response.status(Status.NotFound))
                 }
               }

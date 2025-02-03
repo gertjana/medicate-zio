@@ -45,7 +45,9 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
           id <- m_repo.create(medicine)
           _ <- repo.create(s.copy(medicineId = id))
           gotten <- repo.getById(s.id)
-        } yield assert(gotten)(isSome[medicate.MedicineSchedule](equalTo(s.copy(medicineId = id))))
+        } yield assert(gotten)(
+          isSome[medicate.MedicineSchedule](equalTo(s.copy(medicineId = id)))
+        )
       },
       test("be able to delete a schedule") {
         val s = MedicineSchedule.create(
@@ -79,7 +81,7 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
         )
         val schedule2 = schedule1.copy(id = "2")
         val schedule3 = schedule1.copy(id = "3", time = "09:00")
-        
+
         for {
           redis <- ZIO.service[Redis]
           m_repo <- ZIO.service[MedicineRepository]
@@ -90,28 +92,30 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
           _ <- ms_repo.create(schedule2.copy(medicineId = id2))
           _ <- ms_repo.create(schedule3.copy(medicineId = id1))
           actual <- ms_repo.getSchedule()
-        } yield (assertTrue(actual.length == 2) && 
+        } yield (assertTrue(actual.length == 2) &&
           assertTrue(actual.head.time == "09:00") &&
           assertTrue(actual.head.medicines.length == 1) &&
           assertTrue(actual.last.time == "12:00") &&
-          assertTrue(actual.last.medicines.length == 2)
-        )
+          assertTrue(actual.last.medicines.length == 2))
       }
     ) @@ TestAspect.sequential
       @@ TestAspect.after(
         for {
           redis <- ZIO.service[Redis]
           d_keys <- redis.keys(s"${dosage_prefix}*").returning[String]
-          _ <- if (d_keys.nonEmpty) ZIO.foreach(d_keys)(key => redis.del(key))
-               else ZIO.unit
+          _ <-
+            if (d_keys.nonEmpty) ZIO.foreach(d_keys)(key => redis.del(key))
+            else ZIO.unit
           s_keys <- redis.keys(s"${schedule_prefix}*").returning[String]
-          _ <- if (s_keys.nonEmpty) ZIO.foreach(s_keys)(key => redis.del(key))
-               else ZIO.unit
+          _ <-
+            if (s_keys.nonEmpty) ZIO.foreach(s_keys)(key => redis.del(key))
+            else ZIO.unit
           m_keys <- redis.keys(s"${medicine_prefix}*").returning[String]
-          _ <- if (m_keys.nonEmpty) ZIO.foreach(m_keys)(key => redis.del(key))
-               else ZIO.unit
+          _ <-
+            if (m_keys.nonEmpty) ZIO.foreach(m_keys)(key => redis.del(key))
+            else ZIO.unit
         } yield ()
-    )
+      )
     if (scala.sys.env.contains("EMBEDDED_REDIS")) {
       testSuite.provideShared(
         ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),

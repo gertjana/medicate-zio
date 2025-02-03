@@ -35,9 +35,9 @@ object TestDosageHistoryRepository extends ZIOSpecDefault {
           _ <- repo.create(dosage_history3)
           history <- ZIO.serviceWithZIO[DosageHistoryRepository](_.getAll)
         } yield assertTrue(
-            history.length == 3 &&
-            history.contains(dosage_history) && 
-            history.contains(dosage_history2) && 
+          history.length == 3 &&
+            history.contains(dosage_history) &&
+            history.contains(dosage_history2) &&
             history.contains(dosage_history3) &&
             history.head == dosage_history3 && history.last == dosage_history2
         )
@@ -47,8 +47,9 @@ object TestDosageHistoryRepository extends ZIOSpecDefault {
         for {
           redis <- ZIO.service[Redis]
           keys <- redis.keys(s"${dosage_prefix}*").returning[String]
-          _ <- if (keys.nonEmpty) ZIO.foreach(keys)(key => redis.del(key))
-               else ZIO.unit
+          _ <-
+            if (keys.nonEmpty) ZIO.foreach(keys)(key => redis.del(key))
+            else ZIO.unit
         } yield ()
       )
     if (scala.sys.env.contains("EMBEDDED_REDIS")) {

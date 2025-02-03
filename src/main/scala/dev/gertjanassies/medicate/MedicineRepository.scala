@@ -7,10 +7,10 @@ import zio.json._
 class MedicineRepository(redis: Redis, prefix: String) {
 
   def create(medicine: Medicine): Task[String] = for {
-      id <- ZIO.succeed(java.util.UUID.randomUUID.toString())
-      _ <- redis.set(s"$prefix$id", medicine.copy(id = id).toJson)
-    } yield id
-    
+    id <- ZIO.succeed(java.util.UUID.randomUUID.toString())
+    _ <- redis.set(s"$prefix$id", medicine.copy(id = id).toJson)
+  } yield id
+
   def getAll: Task[List[Medicine]] = for {
     keys <- redis
       .keys(s"$prefix*") // keys is blocking, replace with scan

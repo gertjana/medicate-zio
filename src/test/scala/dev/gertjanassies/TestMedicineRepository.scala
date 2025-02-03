@@ -64,7 +64,9 @@ object TestMedicineRepository extends ZIOSpecDefault {
           updated = m.copy(stock = 20)
           _ <- repo.update(id, updated)
           gotten <- repo.getById(id)
-        } yield assertTrue(gotten.isDefined && gotten.get.stock == updated.stock)
+        } yield assertTrue(
+          gotten.isDefined && gotten.get.stock == updated.stock
+        )
       },
       test("be able to delete a Medication") {
         val m = createTestMedicine(id = "test_delete")
@@ -76,13 +78,14 @@ object TestMedicineRepository extends ZIOSpecDefault {
           gotten <- repo.getById(id)
         } yield assert(gotten)(isNone)
       }
-    ) @@ TestAspect.sequential 
+    ) @@ TestAspect.sequential
       @@ TestAspect.after(
         for {
           redis <- ZIO.service[Redis]
           keys <- redis.keys(s"${prefix}*").returning[String]
-          _ <- if (keys.nonEmpty) ZIO.foreach(keys)(key => redis.del(key))
-               else ZIO.unit
+          _ <-
+            if (keys.nonEmpty) ZIO.foreach(keys)(key => redis.del(key))
+            else ZIO.unit
         } yield ()
       )
 

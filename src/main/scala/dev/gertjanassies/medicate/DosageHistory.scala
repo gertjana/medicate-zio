@@ -22,7 +22,7 @@ object DosageHistory {
   implicit val itemOrdering: Ordering[DosageHistory] =
     def intTime(s: String) = s.replaceAll(":", "").toInt
     Ordering.fromLessThan { (a, b) =>
-      a.date.compareTo(b.date) > 0 || 
+      a.date.compareTo(b.date) > 0 ||
       (a.date.compareTo(b.date) == 0 && intTime(a.time) > intTime(b.time))
     }
 }

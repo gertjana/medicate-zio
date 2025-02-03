@@ -47,7 +47,7 @@ object TestMedicineApi extends ZIOSpecDefault {
         } yield assertTrue(response.status == Status.Ok) &&
           assertTrue(medicines.isRight) &&
           assertTrue(medicines.right.get.length == 2) &&
-          assertTrue(medicines.right.get.map(_.id).contains(id1))&&
+          assertTrue(medicines.right.get.map(_.id).contains(id1)) &&
           assertTrue(medicines.right.get.map(_.id).contains(id2))
       },
       test("respond correctly to getting a single non existing medication") {
@@ -93,10 +93,10 @@ object TestMedicineApi extends ZIOSpecDefault {
           )
           body <- response.body.asString
         } yield assertTrue(
-          response.status == Status.Ok && 
-          body.fromJson[Medicine].isRight &&
-          body.fromJson[Medicine].right.get.id == id &&
-          body.fromJson[Medicine].right.get.stock == testMedicine2.stock
+          response.status == Status.Ok &&
+            body.fromJson[Medicine].isRight &&
+            body.fromJson[Medicine].right.get.id == id &&
+            body.fromJson[Medicine].right.get.stock == testMedicine2.stock
         )
       },
       test("not be able to update a non-existing medicine") {
@@ -227,12 +227,13 @@ object TestMedicineApi extends ZIOSpecDefault {
         } yield assertTrue(response.status == Status.NotFound)
       }
     ) @@ TestAspect.sequential
-    @@ TestAspect.after(
+      @@ TestAspect.after(
         for {
           redis <- ZIO.service[Redis]
           keys <- redis.keys(s"${prefix}*").returning[String]
-          _ <- if (keys.nonEmpty) ZIO.foreach(keys)(key => redis.del(key))
-               else ZIO.unit
+          _ <-
+            if (keys.nonEmpty) ZIO.foreach(keys)(key => redis.del(key))
+            else ZIO.unit
         } yield ()
       )
     if (scala.sys.env.contains("EMBEDDED_REDIS")) {
