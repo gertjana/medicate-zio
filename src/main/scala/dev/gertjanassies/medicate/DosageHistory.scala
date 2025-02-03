@@ -20,8 +20,9 @@ object DosageHistory {
     DeriveSchema.gen[DosageHistory]
 
   implicit val itemOrdering: Ordering[DosageHistory] =
+    def intTime(s: String) = s.replaceAll(":", "").toInt
     Ordering.fromLessThan { (a, b) =>
-      a.date.compareTo(b.date) > 0 ||
-      a.date.compareTo(b.date) == 0 && a.time.compareTo(b.time) < 0
+      a.date.compareTo(b.date) > 0 || 
+      (a.date.compareTo(b.date) == 0 && intTime(a.time) > intTime(b.time))
     }
 }

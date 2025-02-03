@@ -33,13 +33,4 @@ object Medicine {
 
   implicit def orderingById[A <: Medicine]: Ordering[A] =
     Ordering.by(medicine => medicine.id)
-
-  def create(
-      id: String,
-      name: String,
-      dose: Double,
-      unit: String,
-      stock: Double
-  ): Medicine =
-    Medicine(id, name, dose, unit, stock)
 }

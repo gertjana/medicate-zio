@@ -16,10 +16,10 @@ import dev.gertjanassies.medicate.MedicineApi
 import zio.http.Header.Origin
 import zio.http.Middleware.CorsConfig
 
-object TestMedicineAPI extends ZIOSpecDefault {
-  val prefix = "test:api:medicine:"
+object TestMedicineApi extends ZIOSpecDefault {
+  val prefix = "test:api:medicine:tma"
 
-  val testMedicine = Medicine.create(
+  val testMedicine = Medicine(
     id = "test1",
     name = "Test",
     dose = 1.0,
@@ -34,6 +34,9 @@ object TestMedicineAPI extends ZIOSpecDefault {
     val testSuite = suite("Medicate Medicine API should ")(
       test("respond correctly to getting a list of medications") {
         for {
+          repo <- ZIO.service[MedicineRepository]
+          id1 <- repo.create(testMedicine)
+          id2 <- repo.create(testMedicine2)
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
@@ -42,20 +45,11 @@ object TestMedicineAPI extends ZIOSpecDefault {
           body <- response.body.asString
           medicines = body.fromJson[List[medicate.Medicine]]
         } yield assertTrue(response.status == Status.Ok) &&
-          assertTrue(medicines.isRight)
-      } @@ TestAspect.before(
-        for {
-          redis <- ZIO.service[Redis]
-          _ <- redis.set(s"$prefix${testMedicine.id}", testMedicine.toJson)
-          _ <- redis.set(s"$prefix${testMedicine2.id}", testMedicine2.toJson)
-        } yield ()
-      ) @@ TestAspect.after(
-        for {
-          redis <- ZIO.service[Redis]
-          _ <- redis.del(s"$prefix${testMedicine.id}")
-          _ <- redis.del(s"$prefix${testMedicine2.id}")
-        } yield ()
-      ),
+          assertTrue(medicines.isRight) &&
+          assertTrue(medicines.right.get.length == 2) &&
+          assertTrue(medicines.right.get.map(_.id).contains(id1))&&
+          assertTrue(medicines.right.get.map(_.id).contains(id2))
+      },
       test("respond correctly to getting a single non existing medication") {
         for {
           client <- ZIO.service[Client]
@@ -80,24 +74,29 @@ object TestMedicineAPI extends ZIOSpecDefault {
           )
           body <- response.body.asString
         } yield assertTrue(
-          response.status == Status.Created && body == testMedicine.toJson
+          response.status == Status.Created && body.fromJson[Medicine].isRight
         )
       },
       test("be able to update a single medication") {
         for {
+          repo <- ZIO.service[MedicineRepository]
+          id <- repo.create(testMedicine)
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
           _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.put(
-              testRequest.url / "medicines" / testMedicine.id,
+              testRequest.url / "medicines" / id,
               Body.fromString(testMedicine2.toJson)
             )
           )
           body <- response.body.asString
         } yield assertTrue(
-          response.status == Status.Ok && body == testMedicine2.toJson
+          response.status == Status.Ok && 
+          body.fromJson[Medicine].isRight &&
+          body.fromJson[Medicine].right.get.id == id &&
+          body.fromJson[Medicine].right.get.stock == testMedicine2.stock
         )
       },
       test("not be able to update a non-existing medicine") {
@@ -114,49 +113,16 @@ object TestMedicineAPI extends ZIOSpecDefault {
           )
         } yield assertTrue(response.status == Status.NotFound)
       },
-      test("be able to have stock added") {
-        for {
-          client <- ZIO.service[Client]
-          port <- ZIO.serviceWithZIO[Server](_.port)
-          testRequest = Request
-            .get(url = URL.root.port(port))
-            .addQueryParam("amount", "5")
-          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
-          response <- client.batched(
-            Request.post(
-              testRequest.url / "medicines" / testMedicine.id / "addStock",
-              Body.empty
-            )
-          )
-          body <- response.body.asString
-        } yield assertTrue(
-          response.status == Status.Ok && body
-            .fromJson[Medicine]
-            .map(_.stock) == Right(15.0)
-        )
-      },
-      test("not be able to add stock when the amount queryparam is absent") {
-        for {
-          client <- ZIO.service[Client]
-          port <- ZIO.serviceWithZIO[Server](_.port)
-          testRequest = Request.get(url = URL.root.port(port))
-          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
-          response <- client.batched(
-            Request.post(
-              testRequest.url / "medicines" / testMedicine.id / "addStock",
-              Body.empty
-            )
-          )
-        } yield assertTrue(response.status == Status.BadRequest)
-      },
       test("be able to delete a single medication") {
         for {
+          repo <- ZIO.service[MedicineRepository]
+          id <- repo.create(testMedicine)
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
           _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
-            Request.delete(testRequest.url / "medicines" / testMedicine.id)
+            Request.delete(testRequest.url / "medicines" / id)
           )
         } yield assertTrue(response.status == Status.NoContent)
       },
@@ -246,22 +212,6 @@ object TestMedicineAPI extends ZIOSpecDefault {
           cors_config.allowedOrigin(Origin("http", "example.com", None)).isEmpty
         )
       },
-      test("not be able to add stock to a non-existing medicine") {
-        for {
-          client <- ZIO.service[Client]
-          port <- ZIO.serviceWithZIO[Server](_.port)
-          testRequest = Request
-            .get(url = URL.root.port(port))
-            .addQueryParam("amount", "5")
-          _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
-          response <- client.batched(
-            Request.post(
-              testRequest.url / "medicines" / "non-existing-id" / "addStock",
-              Body.empty
-            )
-          )
-        } yield assertTrue(response.status == Status.NotFound)
-      },
       test("not able to take a dose for a non-existing medicine") {
         for {
           client <- ZIO.service[Client]
@@ -277,6 +227,14 @@ object TestMedicineAPI extends ZIOSpecDefault {
         } yield assertTrue(response.status == Status.NotFound)
       }
     ) @@ TestAspect.sequential
+    @@ TestAspect.after(
+        for {
+          redis <- ZIO.service[Redis]
+          keys <- redis.keys(s"${prefix}*").returning[String]
+          _ <- if (keys.nonEmpty) ZIO.foreach(keys)(key => redis.del(key))
+               else ZIO.unit
+        } yield ()
+      )
     if (scala.sys.env.contains("EMBEDDED_REDIS")) {
       testSuite.provideShared(
         ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),

@@ -15,11 +15,11 @@ import dev.gertjanassies.medicate._
 import zio.http.Header.Origin
 
 object TestMedicineScheduleApi extends ZIOSpecDefault {
-  val prefix = "test:api:schedule:"
-  val medicine_prefix = "test:api:medicine:"
-  val dosage_prefix = "test:api:dosage:"
+  val prefix = "test:api:schedule:tmsa"
+  val medicine_prefix = "test:api:medicine:tmsa"
+  val dosage_prefix = "test:api:dosage:tmsa"
   def spec = {
-    val testMedicine1 = Medicine.create(
+    val testMedicine1 = Medicine(
       id = "1",
       name = "Test",
       dose = 1.0,

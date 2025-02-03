@@ -1,14 +1,16 @@
 package dev.gertjanassies.medicate
 
-import zio.*
-import zio.redis.*
-import zio.json.*
+import zio._
+import zio.redis._
+import zio.json._
 
 class MedicineRepository(redis: Redis, prefix: String) {
 
-  def create(medicine: Medicine): ZIO[Any, RedisError, Boolean] =
-    redis.set(s"$prefix${medicine.id}", medicine.toJson)
-
+  def create(medicine: Medicine): Task[String] = for {
+      id <- ZIO.succeed(java.util.UUID.randomUUID.toString())
+      _ <- redis.set(s"$prefix$id", medicine.copy(id = id).toJson)
+    } yield id
+    
   def getAll: Task[List[Medicine]] = for {
     keys <- redis
       .keys(s"$prefix*") // keys is blocking, replace with scan
@@ -31,7 +33,10 @@ class MedicineRepository(redis: Redis, prefix: String) {
       .map(_.flatMap(_.fromJson[Medicine].toOption))
 
   def update(id: String, medicine: Medicine): Task[Boolean] =
-    redis.set(s"$prefix$id", medicine.toJson)
+    for {
+      to_update <- ZIO.succeed(medicine.copy(id = id))
+      _ <- redis.set(s"$prefix$id", to_update.toJson)
+    } yield true
 
   def delete(id: String): Task[Unit] =
     redis.del(s"$prefix$id").unit

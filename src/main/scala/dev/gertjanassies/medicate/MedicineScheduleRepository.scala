@@ -63,7 +63,6 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
         grouped,
         dosageHistory.find(_.time == time).map(_ => true)
       )
-    // DailySchedule(time, grouped)
     })
   } yield dailySchedules.toList.sorted
 

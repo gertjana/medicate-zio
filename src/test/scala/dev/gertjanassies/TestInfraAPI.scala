@@ -6,7 +6,7 @@ import zio.http.netty.NettyConfig
 import zio.http.netty.server.NettyDriver
 import zio.test._
 
-object TestInfraAPI extends ZIOSpecDefault {
+object TestInfraApi extends ZIOSpecDefault {
   def spec = suite("Medicate Infra API should ") {
     test("respond correctly to a readyness probe check") {
       for {

@@ -7,7 +7,7 @@ import zio.json.{DecoderOps, EncoderOps}
 
 object TestMedicine extends ZIOSpecDefault {
   val med =
-    Medicine.create(
+    Medicine(
       id = "test1",
       name = "Test",
       dose = 1.0,
