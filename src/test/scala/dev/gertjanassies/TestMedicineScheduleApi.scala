@@ -83,8 +83,12 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
           assertTrue(medicine_schedule.isRight) &&
           assertTrue(medicine_schedule.toOption.get.id == s_id1) &&
           assertTrue(medicine_schedule.toOption.get.medicineId == m_id1) &&
-          assertTrue(medicine_schedule.toOption.get.time == testSchedule1.time) &&
-          assertTrue(medicine_schedule.toOption.get.amount == testSchedule1.amount)
+          assertTrue(
+            medicine_schedule.toOption.get.time == testSchedule1.time
+          ) &&
+          assertTrue(
+            medicine_schedule.toOption.get.amount == testSchedule1.amount
+          )
       },
       test("respond correctly to creating a schedule") {
         for {
@@ -172,14 +176,17 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
         for {
           redis <- ZIO.service[Redis]
           keys <- redis.keys(s"$medicine_prefix*").returning[String]
-          _ <- if (keys.nonEmpty) ZIO.foreach(keys)(key => redis.del(key))
-               else ZIO.unit
+          _ <-
+            if (keys.nonEmpty) ZIO.foreach(keys)(key => redis.del(key))
+            else ZIO.unit
           keys <- redis.keys(s"$dosage_prefix*").returning[String]
-          _ <- if (keys.nonEmpty) ZIO.foreach(keys)(key => redis.del(key))
-               else ZIO.unit
+          _ <-
+            if (keys.nonEmpty) ZIO.foreach(keys)(key => redis.del(key))
+            else ZIO.unit
           keys <- redis.keys(s"$schedule_prefix*").returning[String]
-          _ <- if (keys.nonEmpty) ZIO.foreach(keys)(key => redis.del(key))
-               else ZIO.unit
+          _ <-
+            if (keys.nonEmpty) ZIO.foreach(keys)(key => redis.del(key))
+            else ZIO.unit
         } yield ()
       )
     if (scala.sys.env.contains("EMBEDDED_REDIS")) {

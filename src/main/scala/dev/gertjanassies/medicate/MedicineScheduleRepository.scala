@@ -12,7 +12,6 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
       _ <- redis.set(s"$prefix$id", schedule.copy(id = id).toJson)
     } yield id
 
-
   def getAll: Task[List[MedicineSchedule]] = for {
     keys <- redis
       .keys(s"$prefix*") // keys is blocking, replace with scan
@@ -64,9 +63,9 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
     }
     dailySchedules <- ZIO.succeed(groupedSchedules.map { case (time, grouped) =>
       DailySchedule(
-        time=time,
-        medicines=grouped,
-        taken=dosageHistory.find(_.time == time).map(_ => true)
+        time = time,
+        medicines = grouped,
+        taken = dosageHistory.find(_.time == time).map(_ => true)
       )
     })
   } yield dailySchedules.toList.sorted

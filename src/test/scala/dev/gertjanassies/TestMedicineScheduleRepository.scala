@@ -93,12 +93,11 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
           _ <- ms_repo.create(schedule2.copy(medicineId = id2))
           _ <- ms_repo.create(schedule3.copy(medicineId = id1))
           actual <- ms_repo.getDailySchedule()
-        } yield (assertTrue(actual.length == 2) && 
+        } yield (assertTrue(actual.length == 2) &&
           assertTrue(actual.head.time == "09:00") &&
           assertTrue(actual.head.medicines.length == 1) &&
           assertTrue(actual.last.time == "12:00") &&
-          assertTrue(actual.last.medicines.length == 2)
-        )
+          assertTrue(actual.last.medicines.length == 2))
       },
       test("be able to add taken dosages") {
         val s = MedicineSchedule.create(
@@ -120,13 +119,12 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
           m_repo <- ZIO.service[MedicineRepository]
           m_id <- m_repo.create(medicine1)
           id <- repo.create(s.copy(medicineId = m_id))
-          _ <- repo.addtakendosages("12:00", "2024-01-01")  
+          _ <- repo.addtakendosages("12:00", "2024-01-01")
           actual <- repo.getDailySchedule()
         } yield (assertTrue(actual.length == 1) &&
           assertTrue(actual.head.time == "12:00") &&
           assertTrue(actual.head.medicines.length == 1) &&
-          assertTrue(actual.head.medicines.head._1.isDefined)
-        )
+          assertTrue(actual.head.medicines.head._1.isDefined))
       }
     ) @@ TestAspect.sequential
       @@ TestAspect.after(

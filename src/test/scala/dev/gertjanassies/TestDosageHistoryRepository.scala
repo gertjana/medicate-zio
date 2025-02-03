@@ -27,7 +27,7 @@ object TestDosageHistoryRepository extends ZIOSpecDefault {
   val dosage_history3 = dosage_history.copy(medicineId = "test3", date = today)
 
   def spec = {
-    val testSuite = suite("DosageHistoryRepository should") (
+    val testSuite = suite("DosageHistoryRepository should")(
       test("be able to get all history") {
         for {
           redis <- ZIO.service[Redis]
@@ -37,11 +37,11 @@ object TestDosageHistoryRepository extends ZIOSpecDefault {
           id3 <- repo.create(dosage_history3)
           history <- ZIO.serviceWithZIO[DosageHistoryRepository](_.getAll)
         } yield assertTrue(
-            history.length == 3 &&
+          history.length == 3 &&
             history.map(_.id).contains(id1) &&
             history.map(_.id).contains(id2) &&
             history.map(_.id).contains(id3) &&
-            history.head.medicineId == dosage_history3.medicineId && 
+            history.head.medicineId == dosage_history3.medicineId &&
             history.last.medicineId == dosage_history2.medicineId
         )
       },
@@ -55,8 +55,8 @@ object TestDosageHistoryRepository extends ZIOSpecDefault {
           history <- ZIO.serviceWithZIO[DosageHistoryRepository](_.getToday)
         } yield assertTrue(
           history.length == 1 &&
-          history.head.medicineId == dosage_history3.medicineId &&
-          history.head.date == today
+            history.head.medicineId == dosage_history3.medicineId &&
+            history.head.date == today
         )
       }
     ) @@ TestAspect.sequential

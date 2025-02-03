@@ -20,11 +20,11 @@ object TestDosageHistoryApi extends ZIOSpecDefault {
 
   val today = LocalDate.now().toString
   var dosageHistory = DosageHistory(
-      id = "",
-      date = "2024-01-01",
-      time = "10:00",
-      medicineId = "test1",
-      amount = 10
+    id = "",
+    date = "2024-01-01",
+    time = "10:00",
+    medicineId = "test1",
+    amount = 10
   )
   var dosageHistory2 = dosageHistory.copy(medicineId = "test2")
   var dosageHistory3 = dosageHistory.copy(medicineId = "test3", date = today)
@@ -32,21 +32,27 @@ object TestDosageHistoryApi extends ZIOSpecDefault {
     val testSuite = suite("Dosage History API should ")(
       test("respond correctly to getting all dosage histories") {
         for {
-            repo <- ZIO.service[DosageHistoryRepository]
-            _ <- repo.create(dosageHistory)
-            _ <- repo.create(dosageHistory2)
-            client <- ZIO.service[Client]
-              port <- ZIO.serviceWithZIO[Server](_.port)
-              testRequest = Request.get(url = URL.root.port(port))
-              _ <- TestServer.addRoutes(medicate.DosageHistoryApi.routes)
-            response <- client.batched(Request.get(testRequest.url / "dosagehistory"))
-            body <- response.body.asString
-            histories = body.fromJson[List[medicate.DosageHistory]]
+          repo <- ZIO.service[DosageHistoryRepository]
+          _ <- repo.create(dosageHistory)
+          _ <- repo.create(dosageHistory2)
+          client <- ZIO.service[Client]
+          port <- ZIO.serviceWithZIO[Server](_.port)
+          testRequest = Request.get(url = URL.root.port(port))
+          _ <- TestServer.addRoutes(medicate.DosageHistoryApi.routes)
+          response <- client.batched(
+            Request.get(testRequest.url / "dosagehistory")
+          )
+          body <- response.body.asString
+          histories = body.fromJson[List[medicate.DosageHistory]]
         } yield assertTrue(response.status == Status.Ok) &&
           assertTrue(histories.isRight) &&
           assertTrue(histories.right.get.length == 2) &&
-          assertTrue(histories.right.get.map(_.date).contains(dosageHistory.date))&&
-          assertTrue(histories.right.get.map(_.date).contains(dosageHistory2.date))
+          assertTrue(
+            histories.right.get.map(_.date).contains(dosageHistory.date)
+          ) &&
+          assertTrue(
+            histories.right.get.map(_.date).contains(dosageHistory2.date)
+          )
       },
       test("respond correctly to getting today's dosage histories") {
         for {
@@ -56,7 +62,9 @@ object TestDosageHistoryApi extends ZIOSpecDefault {
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
           _ <- TestServer.addRoutes(medicate.DosageHistoryApi.routes)
-          response <- client.batched(Request.get(testRequest.url / "dosagehistory" / "today"))
+          response <- client.batched(
+            Request.get(testRequest.url / "dosagehistory" / "today")
+          )
           body <- response.body.asString
           histories = body.fromJson[List[medicate.DosageHistory]]
         } yield assertTrue(response.status == Status.Ok) &&
@@ -64,7 +72,7 @@ object TestDosageHistoryApi extends ZIOSpecDefault {
           assertTrue(histories.right.get.length == 1) &&
           assertTrue(histories.right.get.map(_.date).contains(today))
       },
-            test("CORS Config should allow for localhost") {
+      test("CORS Config should allow for localhost") {
         val cors_config = DosageHistoryApi.config
         assertTrue(
           cors_config.allowedOrigin(Origin("http", "localhost", None)).isDefined
@@ -91,10 +99,11 @@ object TestDosageHistoryApi extends ZIOSpecDefault {
         for {
           redis <- ZIO.service[Redis]
           keys <- redis.keys(s"${prefix}*").returning[String]
-          _ <- if (keys.nonEmpty) ZIO.foreach(keys)(key => redis.del(key))
-              else ZIO.unit
+          _ <-
+            if (keys.nonEmpty) ZIO.foreach(keys)(key => redis.del(key))
+            else ZIO.unit
         } yield ()
-      ) 
+      )
     if (scala.sys.env.contains("EMBEDDED_REDIS")) {
       testSuite.provideShared(
         ZLayer.succeed[CodecSupplier](ProtobufCodecSupplier),

@@ -7,9 +7,10 @@ import java.time.LocalDate
 
 class DosageHistoryRepository(redis: Redis, prefix: String) {
   def create(dosageHistory: DosageHistory): ZIO[Any, RedisError, String] = {
-    for id <- ZIO.succeed(java.util.UUID.randomUUID().toString)
-    _ <- redis.set(s"$prefix${id}",dosageHistory.copy(id = id).toJson
-    ) yield (id)
+    for
+      id <- ZIO.succeed(java.util.UUID.randomUUID().toString)
+      _ <- redis.set(s"$prefix${id}", dosageHistory.copy(id = id).toJson)
+    yield (id)
   }
 
   def getAll: Task[List[DosageHistory]] = for {
