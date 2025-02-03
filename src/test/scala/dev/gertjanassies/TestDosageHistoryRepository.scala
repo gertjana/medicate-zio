@@ -20,6 +20,7 @@ object TestDosageHistoryRepository extends ZIOSpecDefault {
     date = "2025-01-01",
     time = "12:00",
     medicineId = "test1",
+    description = "test1",
     amount = 1.0
   )
   val dosage_history2 =

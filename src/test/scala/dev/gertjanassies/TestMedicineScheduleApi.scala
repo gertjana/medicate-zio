@@ -19,24 +19,21 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
   val medicine_prefix = "test:api:medicine:tmsa"
   val dosage_prefix = "test:api:dosage:tmsa"
   def spec = {
-    val testMedicine1 = Medicine(
-      id = "1",
+    val testMedicine1 = ApiMedicine(
       name = "Test",
       dose = 1.0,
       unit = "mg",
       stock = 10
     )
-    val testMedicine2 = testMedicine1.copy(id = "2", name = "Test2")
+    val testMedicine2 = testMedicine1.copy(name = "Test2")
 
-    val testSchedule1 = MedicineSchedule(
-      id = "1",
+    val testSchedule1 = ApiMedicineSchedule(
       medicineId = "1",
       time = "12:00",
       amount = 1.0
     )
-    val testSchedule2 = testSchedule1.copy(id = "2", medicineId = "2")
-    val testSchedule3 =
-      testSchedule1.copy(id = "3", medicineId = "1", time = "09:00")
+    val testSchedule2 = testSchedule1.copy(medicineId = "2")
+    val testSchedule3 = testSchedule1.copy(medicineId = "1", time = "09:00")
 
     val testSuite = suite("Medicate Medicine Schedule API should ")(
       test("respond correctly to getting a list of schedules") {
@@ -102,36 +99,40 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
             )
           )
           body <- response.body.asString
-          medicine = body.fromJson[medicate.MedicineSchedule]
+          medicine = body.fromJson[medicate.ApiMedicineSchedule]
         } yield assertTrue(response.status == Status.Created) &&
           assertTrue(medicine.isRight) &&
           assertTrue(medicine.toOption.get == testSchedule1)
       },
       test("respond correctly to updating a schedule") {
         for {
+          repo <- ZIO.service[MedicineScheduleRepository]
+          s_id1 <- repo.create(testSchedule1)
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           _ <- TestServer.addRoutes(medicate.MedicineScheduleApi.routes)
           response <- client.batched(
             Request.put(
-              URL.root.port(port) / "schedules" / testSchedule1.id,
+              URL.root.port(port) / "schedules" / s_id1,
               Body.fromString(testSchedule2.toJson)
             )
           )
           body <- response.body.asString
-          medicine = body.fromJson[medicate.MedicineSchedule]
+          medicine = body.fromJson[medicate.ApiMedicineSchedule]
         } yield assertTrue(response.status == Status.Ok) &&
           assertTrue(medicine.isRight) &&
           assertTrue(medicine.toOption.get == testSchedule2)
       },
       test("be able to delete a schedule") {
         for {
+          repo <- ZIO.service[MedicineScheduleRepository]
+          s_id1 <- repo.create(testSchedule1)
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           _ <- TestServer.addRoutes(medicate.MedicineScheduleApi.routes)
           response <- client.batched(
             Request.delete(
-              URL.root.port(port) / "schedules" / testSchedule1.id
+              URL.root.port(port) / "schedules" / s_id1
             )
           )
         } yield assertTrue(response.status == Status.NoContent)

@@ -15,20 +15,20 @@ import zio.json.DecoderOps
 import dev.gertjanassies.medicate.MedicineApi
 import zio.http.Header.Origin
 import zio.http.Middleware.CorsConfig
+import dev.gertjanassies.medicate.ApiMedicine
 
 object TestMedicineApi extends ZIOSpecDefault {
   val prefix = "test:api:medicine:tma"
 
-  val testMedicine = Medicine(
-    id = "test1",
+  val testMedicine = ApiMedicine(
     name = "Test",
     dose = 1.0,
     unit = "mg",
-    stock = 10
+    stock = 10  
   )
-  val testMedicine2 = testMedicine.copy(id = "test2")
-  val testMedicine3 = testMedicine.copy(id = "test3")
-  val testMedicine4 = testMedicine.copy(id = "test4")
+  val testMedicine2 = testMedicine.copy(name = "test2")
+  val testMedicine3 = testMedicine.copy(name = "test3")
+  val testMedicine4 = testMedicine.copy(name = "test4")
 
   def spec = {
     val testSuite = suite("Medicate Medicine API should ")(
@@ -142,13 +142,15 @@ object TestMedicineApi extends ZIOSpecDefault {
       },
       test("not be able to update a medicine with invalid json body") {
         for {
+          repo <- ZIO.service[MedicineRepository]
+          id <- repo.create(testMedicine)
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
           _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
             Request.put(
-              testRequest.url / "medicines" / testMedicine.id,
+              testRequest.url / "medicines" / id,
               Body.fromString("invalid json")
             )
           )

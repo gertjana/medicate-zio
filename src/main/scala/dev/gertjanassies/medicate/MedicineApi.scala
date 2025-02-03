@@ -19,7 +19,7 @@ object MedicineApi {
     // Create
     Method.POST / "medicines" -> handler { (request: Request) =>
       request.body.asString
-        .map(_.fromJson[Medicine])
+        .map(_.fromJson[ApiMedicine])
         .flatMap {
           case Left(error) =>
             ZIO.succeed(Response.text(error).status(Status.BadRequest))
@@ -72,7 +72,7 @@ object MedicineApi {
     Method.PUT / "medicines" / string("id") -> handler {
       (id: String, request: Request) =>
         request.body.asString
-          .map(_.fromJson[Medicine])
+          .map(_.fromJson[ApiMedicine])
           .flatMap {
             case Left(error) =>
               ZIO.succeed(Response.text(error).status(Status.BadRequest))
@@ -81,7 +81,7 @@ object MedicineApi {
                 repo.getById(id).flatMap {
                   case Some(_) =>
                     repo.update(id, medicine) *>
-                      ZIO.succeed(Response.json(medicine.copy(id = id).toJson))
+                      repo.getById(id).map(medicine => Response.json(medicine.toJson))
                   case None => ZIO.succeed(Response.status(Status.NotFound))
                 }
               }
@@ -125,7 +125,7 @@ object MedicineApi {
                   .flatMap {
                     case Some(medicine) =>
                       var updatedMedicine = medicine.addStock(amount.toInt)
-                      repo.update(id, updatedMedicine) *>
+                      repo.update(id, updatedMedicine.toApiMedicine) *>
                         ZIO.succeed(Response.json(updatedMedicine.toJson))
                     case None =>
                       ZIO.succeed(Response.status(Status.NotFound))

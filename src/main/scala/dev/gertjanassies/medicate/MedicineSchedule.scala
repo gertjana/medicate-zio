@@ -9,6 +9,7 @@ final case class MedicineSchedule(
     id: String,
     time: String,
     medicineId: MedicineId,
+    description: String,
     amount: Double
 ) {}
 
@@ -28,9 +29,23 @@ object MedicineSchedule {
       id: String,
       time: String,
       medicineId: MedicineId,
+      description: String,
       amount: Double
   ): MedicineSchedule =
-    MedicineSchedule(id, time, medicineId, amount)
+    MedicineSchedule(id, time, medicineId, description, amount)
+}
+
+final case class ApiMedicineSchedule(
+    time: String,
+    medicineId: MedicineId,
+    amount: Double
+) {}
+
+object ApiMedicineSchedule {
+  implicit val encoder: JsonEncoder[ApiMedicineSchedule] =
+    DeriveJsonEncoder.gen[ApiMedicineSchedule]
+  implicit val decoder: JsonDecoder[ApiMedicineSchedule] =
+    DeriveJsonDecoder.gen[ApiMedicineSchedule]
 }
 
 final case class DailySchedule(

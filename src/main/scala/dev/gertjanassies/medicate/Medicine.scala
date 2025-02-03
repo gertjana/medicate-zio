@@ -18,6 +18,10 @@ final case class Medicine(
 ) extends Medication {
   import Medicine._
 
+  override def toString(): String = s"$name ($dose $unit)"
+
+  def toApiMedicine: ApiMedicine = ApiMedicine(name, dose, unit, stock)
+
   def addStock(newStock: Int): Medicine =
     val resultingStock = this.stock + newStock
     this.copy(
@@ -33,4 +37,18 @@ object Medicine {
 
   implicit def orderingById[A <: Medicine]: Ordering[A] =
     Ordering.by(medicine => medicine.id)
+}
+
+final case class ApiMedicine(
+    name: String,
+    dose: Double,
+    unit: String,
+    stock: Double
+) {
+  def toMedicine(id: MedicineId): Medicine = Medicine(id, name, dose, unit, stock)
+}
+
+object ApiMedicine {
+  implicit val encoder: JsonEncoder[ApiMedicine] = DeriveJsonEncoder.gen[ApiMedicine]
+  implicit val decoder: JsonDecoder[ApiMedicine] = DeriveJsonDecoder.gen[ApiMedicine]
 }

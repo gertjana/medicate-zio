@@ -25,11 +25,11 @@ object MedicineScheduleApi {
     // create
     Method.POST / "schedules" -> handler { (request: Request) =>
       request.body.asString
-        .map(_.fromJson[MedicineSchedule])
+        .map(_.fromJson[ApiMedicineSchedule])
         .flatMap {
           case Left(error: String) =>
             ZIO.succeed(Response.text(error).status(Status.BadRequest))
-          case Right(schedule: MedicineSchedule) =>
+          case Right(schedule: ApiMedicineSchedule) =>
             ZIO.serviceWithZIO[MedicineScheduleRepository] { repo =>
               for {
                 result <- repo.create(schedule)
@@ -74,7 +74,7 @@ object MedicineScheduleApi {
     Method.PUT / "schedules" / string("id") -> handler {
       (id: ScheduleId, request: Request) =>
         request.body.asString
-          .map(_.fromJson[MedicineSchedule])
+          .map(_.fromJson[ApiMedicineSchedule])
           .flatMap {
             case Left(error) =>
               ZIO.succeed(Response.text(error).status(Status.BadRequest))

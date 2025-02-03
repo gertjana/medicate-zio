@@ -6,9 +6,10 @@ import zio.json._
 
 class MedicineRepository(redis: Redis, prefix: String) {
 
-  def create(medicine: Medicine): Task[String] = for {
+  def create(apiMedicine: ApiMedicine): Task[String] = for {
     id <- ZIO.succeed(java.util.UUID.randomUUID.toString())
-    _ <- redis.set(s"$prefix$id", medicine.copy(id = id).toJson)
+    medicine <- ZIO.succeed(Medicine(id, apiMedicine.name, apiMedicine.dose, apiMedicine.unit, apiMedicine.stock))
+    _ <- redis.set(s"$prefix$id", medicine.toJson)
   } yield id
 
   def getAll: Task[List[Medicine]] = for {
@@ -32,11 +33,11 @@ class MedicineRepository(redis: Redis, prefix: String) {
       .returning[String]
       .map(_.flatMap(_.fromJson[Medicine].toOption))
 
-  def update(id: String, medicine: Medicine): Task[Boolean] =
+  def update(id: String, medicine: ApiMedicine): Task[Boolean] =
     for {
-      to_update <- ZIO.succeed(medicine.copy(id = id))
-      _ <- redis.set(s"$prefix$id", to_update.toJson)
-    } yield true
+      to_update <- ZIO.succeed(Medicine(id, medicine.name, medicine.dose, medicine.unit, medicine.stock))
+      result <- redis.set(s"$prefix$id", to_update.toJson)
+    } yield result
 
   def delete(id: String): Task[Unit] =
     redis.del(s"$prefix$id").unit

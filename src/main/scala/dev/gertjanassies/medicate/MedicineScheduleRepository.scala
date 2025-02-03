@@ -6,16 +6,18 @@ import zio.json._
 
 class MedicineScheduleRepository(redis: Redis, prefix: String) {
 
-  def create(schedule: MedicineSchedule): ZIO[Any, RedisError, String] =
+  def create(schedule: ApiMedicineSchedule): ZIO[Any, RedisError, String] =
     for {
       id <- ZIO.succeed(java.util.UUID.randomUUID().toString)
-      _ <- redis.set(s"$prefix$id", schedule.copy(id = id).toJson)
+      ms <- ZIO.succeed(MedicineSchedule(id, schedule.time, schedule.medicineId, "", schedule.amount))
+      _ <- redis.set(s"$prefix$id", ms.toJson)
     } yield id
 
-  def getAll: Task[List[MedicineSchedule]] = for {
+
+  def getAll: ZIO[MedicineRepository, Throwable, List[MedicineSchedule]] = for {
     keys <- redis
-      .keys(s"$prefix*") // keys is blocking, replace with scan
-      .returning[String]
+      .keys(s"$prefix*").returning[String]
+    medicines <- ZIO.service[MedicineRepository].flatMap(_.getAll)
     schedules <-
       if (keys.isEmpty) {
         ZIO.succeed(List.empty)
@@ -27,6 +29,7 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
               .map(_.flatMap(_.fromJson[MedicineSchedule].toOption))
               .filter(_.isDefined)
               .map(_.get)
+              .map(m => m.copy(description = medicines.find(_.id == m.medicineId).get.toString()))
           )
         } yield schedules.toList.sorted
       }
@@ -38,8 +41,8 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
       .returning[String]
       .map(_.flatMap(_.fromJson[MedicineSchedule].toOption))
 
-  def update(id: ScheduleId, schedule: MedicineSchedule): Task[Boolean] =
-    var updated = schedule.copy(id = id)
+  def update(id: ScheduleId, schedule: ApiMedicineSchedule): Task[Boolean] =
+    var updated = MedicineSchedule(id, schedule.time, schedule.medicineId, "", schedule.amount)
     redis.set(s"$prefix$id", updated.toJson)
 
   def delete(id: ScheduleId): Task[Unit] =
@@ -91,6 +94,7 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
               date = date,
               time = time,
               medicineId = medicine._1.get.id,
+              description = medicine._1.get.toString(),
               amount = medicine._2
             )
           )

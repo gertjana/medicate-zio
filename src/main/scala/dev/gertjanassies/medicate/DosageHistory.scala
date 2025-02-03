@@ -8,6 +8,7 @@ final case class DosageHistory(
     date: String,
     time: String,
     medicineId: MedicineId,
+    description: String,
     amount: Double
 )
 

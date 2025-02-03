@@ -25,15 +25,13 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
         } yield assert(schedule)(isEmpty)
       },
       test("be able to set and get a schedule") {
-        val medicine = Medicine(
-          id = "1",
+        val medicine = ApiMedicine(
           name = "test_medicine1",
           dose = 1.0,
           unit = "mg",
           stock = 10
         )
-        val s = MedicineSchedule.create(
-          id = "test_set_get",
+        val s = ApiMedicineSchedule(
           medicineId = "",
           time = "12:00",
           amount = 1.0
@@ -51,8 +49,7 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
           assertTrue(gotten.get.amount == s.amount)
       },
       test("be able to delete a schedule") {
-        val s = MedicineSchedule.create(
-          id = "test_delete",
+        val s = ApiMedicineSchedule(
           medicineId = "",
           time = "12:00",
           amount = 1.0
@@ -66,22 +63,20 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
         } yield assert(gotten)(isNone)
       },
       test("to return a daily schedule") {
-        val medicine1 = Medicine(
-          id = "",
+        val medicine1 = ApiMedicine(
           name = "test_medicine1",
           dose = 1.0,
           unit = "mg",
           stock = 10
         )
-        val medicine2 = medicine1.copy(id = "", name = "test_medicine2")
-        val schedule1 = MedicineSchedule.create(
-          id = "1",
+        val medicine2 = medicine1.copy(name = "test_medicine2")
+        val schedule1 = ApiMedicineSchedule(
           medicineId = "",
           time = "12:00",
           amount = 1.0
         )
-        val schedule2 = schedule1.copy(id = "2")
-        val schedule3 = schedule1.copy(id = "3", time = "09:00")
+        val schedule2 = schedule1.copy(medicineId = "2")
+        val schedule3 = schedule1.copy(medicineId = "1", time = "09:00")
 
         for {
           redis <- ZIO.service[Redis]
@@ -100,14 +95,12 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
           assertTrue(actual.last.medicines.length == 2))
       },
       test("be able to add taken dosages") {
-        val s = MedicineSchedule.create(
-          id = "test_add_taken_dosages",
+        val s = ApiMedicineSchedule(
           medicineId = "",
           time = "12:00",
           amount = 1.0
         )
-        val medicine1 = Medicine(
-          id = "",
+        val medicine1 = ApiMedicine(
           name = "test_medicine1",
           dose = 1.0,
           unit = "mg",
