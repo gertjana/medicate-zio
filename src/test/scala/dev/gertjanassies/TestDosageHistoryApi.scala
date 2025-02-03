@@ -20,14 +20,15 @@ object TestDosageHistoryApi extends ZIOSpecDefault {
 
   val today = LocalDate.now().toString
   var dosageHistory = DosageHistory(
-      id = "",
-      date = "2024-01-01",
-      time = "10:00",
-      medicineId = "test1",
-      description = "test1",
-      amount = 10
+    id = "",
+    date = "2024-01-01",
+    time = "10:00",
+    medicineId = "test1",
+    description = "test1",
+    amount = 10
   )
-  var dosageHistory2 = dosageHistory.copy(medicineId = "test2", description = "test2")
+  var dosageHistory2 =
+    dosageHistory.copy(medicineId = "test2", description = "test2")
   var dosageHistory3 = dosageHistory.copy(medicineId = "test3", date = today)
   def spec = {
     val testSuite = suite("Dosage History API should ")(
