@@ -89,14 +89,13 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
       medicines <- ZIO.foreach(schedule.medicines) { medicine =>
         {
           dosageRepository.create(
-            DosageHistory(
-              id = "",
+            ApiDosageHistory(
               date = date,
               time = time,
               medicineId = medicine._1.get.id,
-              description = medicine._1.get.toString(),
               amount = medicine._2
-            )
+            ),
+            medicine._1.get.toString()
           )
         }
       }

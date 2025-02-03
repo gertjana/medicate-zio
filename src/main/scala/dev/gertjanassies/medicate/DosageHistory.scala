@@ -28,3 +28,26 @@ object DosageHistory {
       (a.date.compareTo(b.date) == 0 && intTime(a.time) > intTime(b.time))
     }
 }
+
+case class ApiDosageHistory(
+    date: String,
+    time: String,
+    medicineId: MedicineId,
+    amount: Double
+) {
+  def toDosageHistory(id: String, description: String = ""): DosageHistory = DosageHistory(
+    id = id,
+    date = date,
+    time = time,
+    medicineId = medicineId,
+    description = description,
+    amount = amount
+  )
+}
+
+object ApiDosageHistory {
+  implicit val encoder: JsonEncoder[ApiDosageHistory] =
+    DeriveJsonEncoder.gen[ApiDosageHistory]
+  implicit val decoder: JsonDecoder[ApiDosageHistory] =
+    DeriveJsonDecoder.gen[ApiDosageHistory]
+}

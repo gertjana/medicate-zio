@@ -6,11 +6,12 @@ import zio.json.*
 import java.time.LocalDate
 
 class DosageHistoryRepository(redis: Redis, prefix: String) {
-  def create(dosageHistory: DosageHistory): ZIO[Any, RedisError, String] = {
-    for
+  def create(dosageHistory: ApiDosageHistory, description: String = ""): ZIO[Any, RedisError, String] = {
+    for {
       id <- ZIO.succeed(java.util.UUID.randomUUID().toString)
-      _ <- redis.set(s"$prefix${id}", dosageHistory.copy(id = id).toJson)
-    yield (id)
+      dh <- ZIO.succeed(dosageHistory.toDosageHistory(id, description))
+      _ <- redis.set(s"$prefix${id}", dh.toJson)
+    } yield (id)
   }
 
   def getAll: Task[List[DosageHistory]] = for {

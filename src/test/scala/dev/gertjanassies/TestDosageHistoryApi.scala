@@ -4,7 +4,7 @@ import zio.test._
 import zio._
 import zio.redis._
 import zio.redis.CodecSupplier
-import dev.gertjanassies.medicate.{DosageHistory, DosageHistoryRepository}
+import dev.gertjanassies.medicate.{ApiDosageHistory, DosageHistory, DosageHistoryRepository}
 import java.time.LocalDate
 import zio.redis.embedded.EmbeddedRedis
 import zio.http._
@@ -12,6 +12,7 @@ import zio.http.netty.NettyConfig
 import zio.http.netty.server.NettyDriver
 import zio.json.DecoderOps
 import DosageHistory._
+import ApiDosageHistory._
 import dev.gertjanassies.medicate.DosageHistoryApi
 import zio.http.Header.Origin
 
@@ -19,16 +20,14 @@ object TestDosageHistoryApi extends ZIOSpecDefault {
   val prefix = "test:repo:dosagehistory:tdha"
 
   val today = LocalDate.now().toString
-  var dosageHistory = DosageHistory(
-    id = "",
+  var dosageHistory = ApiDosageHistory(
     date = "2024-01-01",
     time = "10:00",
     medicineId = "test1",
-    description = "test1",
     amount = 10
   )
   var dosageHistory2 =
-    dosageHistory.copy(medicineId = "test2", description = "test2")
+    dosageHistory.copy(medicineId = "test2")
   var dosageHistory3 = dosageHistory.copy(medicineId = "test3", date = today)
   def spec = {
     val testSuite = suite("Dosage History API should ")(
@@ -45,7 +44,7 @@ object TestDosageHistoryApi extends ZIOSpecDefault {
             Request.get(testRequest.url / "dosagehistory")
           )
           body <- response.body.asString
-          histories = body.fromJson[List[medicate.DosageHistory]]
+          histories = body.fromJson[List[medicate.ApiDosageHistory]]
         } yield assertTrue(response.status == Status.Ok) &&
           assertTrue(histories.isRight) &&
           assertTrue(histories.right.get.length == 2) &&
@@ -68,7 +67,7 @@ object TestDosageHistoryApi extends ZIOSpecDefault {
             Request.get(testRequest.url / "dosagehistory" / "today")
           )
           body <- response.body.asString
-          histories = body.fromJson[List[medicate.DosageHistory]]
+          histories = body.fromJson[List[medicate.ApiDosageHistory]]
         } yield assertTrue(response.status == Status.Ok) &&
           assertTrue(histories.isRight) &&
           assertTrue(histories.right.get.length == 1) &&

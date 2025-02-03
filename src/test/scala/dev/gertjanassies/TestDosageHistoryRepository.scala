@@ -15,12 +15,10 @@ object TestDosageHistoryRepository extends ZIOSpecDefault {
   val dosage_prefix = "test:dosage:tdhr:"
   val today = java.time.LocalDate.now().toString
 
-  val dosage_history = DosageHistory(
-    id = "",
+  val dosage_history = ApiDosageHistory(
     date = "2025-01-01",
     time = "12:00",
     medicineId = "test1",
-    description = "test1",
     amount = 1.0
   )
   val dosage_history2 =
