@@ -4,7 +4,11 @@ import zio.test._
 import zio._
 import zio.redis._
 import zio.redis.CodecSupplier
-import dev.gertjanassies.medicate.{ApiDosageHistory, DosageHistory, DosageHistoryRepository}
+import dev.gertjanassies.medicate.{
+  ApiDosageHistory,
+  DosageHistory,
+  DosageHistoryRepository
+}
 import java.time.LocalDate
 import zio.redis.embedded.EmbeddedRedis
 import zio.http._

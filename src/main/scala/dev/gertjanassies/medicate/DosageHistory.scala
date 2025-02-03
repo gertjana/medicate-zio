@@ -35,14 +35,15 @@ case class ApiDosageHistory(
     medicineId: MedicineId,
     amount: Double
 ) {
-  def toDosageHistory(id: String, description: String = ""): DosageHistory = DosageHistory(
-    id = id,
-    date = date,
-    time = time,
-    medicineId = medicineId,
-    description = description,
-    amount = amount
-  )
+  def toDosageHistory(id: String, description: String = ""): DosageHistory =
+    DosageHistory(
+      id = id,
+      date = date,
+      time = time,
+      medicineId = medicineId,
+      description = description,
+      amount = amount
+    )
 }
 
 object ApiDosageHistory {

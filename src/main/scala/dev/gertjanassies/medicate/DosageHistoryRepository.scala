@@ -6,7 +6,10 @@ import zio.json.*
 import java.time.LocalDate
 
 class DosageHistoryRepository(redis: Redis, prefix: String) {
-  def create(dosageHistory: ApiDosageHistory, description: String = ""): ZIO[Any, RedisError, String] = {
+  def create(
+      dosageHistory: ApiDosageHistory,
+      description: String = ""
+  ): ZIO[Any, RedisError, String] = {
     for {
       id <- ZIO.succeed(java.util.UUID.randomUUID().toString)
       dh <- ZIO.succeed(dosageHistory.toDosageHistory(id, description))

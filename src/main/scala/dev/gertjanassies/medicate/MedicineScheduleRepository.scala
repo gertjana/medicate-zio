@@ -9,14 +9,22 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
   def create(schedule: ApiMedicineSchedule): ZIO[Any, RedisError, String] =
     for {
       id <- ZIO.succeed(java.util.UUID.randomUUID().toString)
-      ms <- ZIO.succeed(MedicineSchedule(id, schedule.time, schedule.medicineId, "", schedule.amount))
+      ms <- ZIO.succeed(
+        MedicineSchedule(
+          id,
+          schedule.time,
+          schedule.medicineId,
+          "",
+          schedule.amount
+        )
+      )
       _ <- redis.set(s"$prefix$id", ms.toJson)
     } yield id
 
-
   def getAll: ZIO[MedicineRepository, Throwable, List[MedicineSchedule]] = for {
     keys <- redis
-      .keys(s"$prefix*").returning[String]
+      .keys(s"$prefix*")
+      .returning[String]
     medicines <- ZIO.service[MedicineRepository].flatMap(_.getAll)
     schedules <-
       if (keys.isEmpty) {
@@ -29,7 +37,11 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
               .map(_.flatMap(_.fromJson[MedicineSchedule].toOption))
               .filter(_.isDefined)
               .map(_.get)
-              .map(m => m.copy(description = medicines.find(_.id == m.medicineId).get.toString()))
+              .map(m =>
+                m.copy(description =
+                  medicines.find(_.id == m.medicineId).get.toString()
+                )
+              )
           )
         } yield schedules.toList.sorted
       }
@@ -42,7 +54,13 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
       .map(_.flatMap(_.fromJson[MedicineSchedule].toOption))
 
   def update(id: ScheduleId, schedule: ApiMedicineSchedule): Task[Boolean] =
-    var updated = MedicineSchedule(id, schedule.time, schedule.medicineId, "", schedule.amount)
+    var updated = MedicineSchedule(
+      id,
+      schedule.time,
+      schedule.medicineId,
+      "",
+      schedule.amount
+    )
     redis.set(s"$prefix$id", updated.toJson)
 
   def delete(id: ScheduleId): Task[Unit] =
