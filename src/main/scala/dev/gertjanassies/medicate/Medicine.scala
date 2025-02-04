@@ -45,10 +45,13 @@ final case class ApiMedicine(
     unit: String,
     stock: Double
 ) {
-  def toMedicine(id: MedicineId): Medicine = Medicine(id, name, dose, unit, stock)
+  def toMedicine(id: MedicineId): Medicine =
+    Medicine(id, name, dose, unit, stock)
 }
 
 object ApiMedicine {
-  implicit val encoder: JsonEncoder[ApiMedicine] = DeriveJsonEncoder.gen[ApiMedicine]
-  implicit val decoder: JsonDecoder[ApiMedicine] = DeriveJsonDecoder.gen[ApiMedicine]
+  implicit val encoder: JsonEncoder[ApiMedicine] =
+    DeriveJsonEncoder.gen[ApiMedicine]
+  implicit val decoder: JsonDecoder[ApiMedicine] =
+    DeriveJsonDecoder.gen[ApiMedicine]
 }

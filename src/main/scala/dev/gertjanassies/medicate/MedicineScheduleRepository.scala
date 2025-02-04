@@ -117,11 +117,13 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
             medicine._1.get.toString()
           )
         }
-      
+
       }
       _ <- ZIO.foreach(schedule.medicines) { medicine =>
         {
-          medicineRepository.reduceStock(medicine._1.get.id, medicine._2).mapError(_ => RedisError.ProtocolError("Failed to reduce stock"))
+          medicineRepository
+            .reduceStock(medicine._1.get.id, medicine._2)
+            .mapError(_ => RedisError.ProtocolError("Failed to reduce stock"))
         }
       }
     } yield true

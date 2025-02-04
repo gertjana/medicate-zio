@@ -8,7 +8,15 @@ class MedicineRepository(redis: Redis, prefix: String) {
 
   def create(apiMedicine: ApiMedicine): Task[String] = for {
     id <- ZIO.succeed(java.util.UUID.randomUUID.toString())
-    medicine <- ZIO.succeed(Medicine(id, apiMedicine.name, apiMedicine.dose, apiMedicine.unit, apiMedicine.stock))
+    medicine <- ZIO.succeed(
+      Medicine(
+        id,
+        apiMedicine.name,
+        apiMedicine.dose,
+        apiMedicine.unit,
+        apiMedicine.stock
+      )
+    )
     _ <- redis.set(s"$prefix$id", medicine.toJson)
   } yield id
 
@@ -35,7 +43,15 @@ class MedicineRepository(redis: Redis, prefix: String) {
 
   def update(id: String, medicine: ApiMedicine): Task[Boolean] =
     for {
-      to_update <- ZIO.succeed(Medicine(id, medicine.name, medicine.dose, medicine.unit, medicine.stock))
+      to_update <- ZIO.succeed(
+        Medicine(
+          id,
+          medicine.name,
+          medicine.dose,
+          medicine.unit,
+          medicine.stock
+        )
+      )
       result <- redis.set(s"$prefix$id", to_update.toJson)
     } yield result
 
