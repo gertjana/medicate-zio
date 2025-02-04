@@ -41,6 +41,19 @@ class MedicineRepository(redis: Redis, prefix: String) {
 
   def delete(id: String): Task[Unit] =
     redis.del(s"$prefix$id").unit
+
+  def reduceStock(id: String, amount: Double): Task[Boolean] =
+    for {
+      maybeMedicine <- getById(id)
+      result <- maybeMedicine match {
+        case Some(medicine) =>
+          val newStock = medicine.stock - amount
+          if (newStock < 0) ZIO.succeed(false)
+          else update(id, medicine.toApiMedicine.copy(stock = newStock))
+        case None => ZIO.succeed(false)
+      }
+    } yield result
+
 }
 
 object MedicineRepository {

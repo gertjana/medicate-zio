@@ -22,8 +22,8 @@ object MedicineSchedule {
   implicit val itemSchema: Schema[MedicineSchedule] =
     DeriveSchema.gen[MedicineSchedule]
 
-  implicit def orderingById[A <: MedicineSchedule]: Ordering[A] =
-    Ordering.by(schedule => schedule.id)
+  implicit def orderingByTime[A <: MedicineSchedule]: Ordering[A] =
+    Ordering.by(schedule => schedule.time.replaceAll(":", "").toInt)
 
   def create(
       id: String,
