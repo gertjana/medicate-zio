@@ -19,15 +19,24 @@ object TestMainAPI extends ZIOSpecDefault {
     test("set the default port") {
       for {
         _ <- TestSystem.clearEnv("PORT")
-        port = Main.port
-      } yield assertTrue(port == 8080)
+        serverConfig <- Main.serverConfig
+      } yield assertTrue(serverConfig.address.getPort() == 8080)
     },
     test("set the port according to the environment") {
       for {
         _ <- TestSystem.putEnv("PORT", "8082")
-        port = Main.port
-      } yield assertTrue(port == 8082)
-    } @@ TestAspect.ignore
+        serverConfig <- Main.serverConfig
+      } yield assertTrue(serverConfig.address.getPort() == 8082)
+    },
+    test("set the redis host and port according to the environment") {
+      for {
+        _ <- TestSystem.putEnv("REDIS_HOST", "redis.host")
+        _ <- TestSystem.putEnv("REDIS_PORT", "6380")
+        redisConfig <- Main.redis_config
+      } yield assertTrue(
+        redisConfig.host == "redis.host" && redisConfig.port == 6380
+      )
+    }
   ).provideShared(
     ZIOAppArgs.empty,
     ZLayer.succeed(Scope.global)

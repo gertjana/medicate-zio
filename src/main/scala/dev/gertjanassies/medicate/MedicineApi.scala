@@ -3,21 +3,14 @@ package dev.gertjanassies.medicate
 import zio.*
 import zio.http.*
 import zio.json.*
-import zio.http.Middleware.{CorsConfig, cors}
-import zio.http.Header.AccessControlAllowOrigin
+import zio.http.Middleware.cors
 
 object MedicineApi {
-  val config: CorsConfig = // remove in production
-    CorsConfig(
-      allowedOrigin = {
-        case origin if origin.renderedValue.contains("localhost") =>
-          Some(AccessControlAllowOrigin.Specific(origin))
-        case _ => None
-      }
-    )
+
   def routes: Routes[MedicineRepository, Response] = Routes(
     // Create
     Method.POST / "medicines" -> handler { (request: Request) =>
+      ZIO.logInfo("POST /medicines called")
       request.body.asString
         .map(_.fromJson[ApiMedicine])
         .flatMap {
@@ -40,6 +33,7 @@ object MedicineApi {
 
     // Read (all)
     Method.GET / "medicines" -> handler {
+      ZIO.logInfo("GET /medicines called")
       ZIO
         .serviceWithZIO[MedicineRepository](_.getAll)
         .map(meds => Response.json(meds.toJson))
@@ -53,6 +47,7 @@ object MedicineApi {
     // Read (single)
     Method.GET / "medicines" / string("id") -> handler {
       (id: String, request: Request) =>
+        ZIO.logInfo(s"GET /medicines/$id")
         ZIO
           .serviceWithZIO[MedicineRepository](_.getById(id))
           .map(optMed =>
@@ -71,6 +66,7 @@ object MedicineApi {
     // Update
     Method.PUT / "medicines" / string("id") -> handler {
       (id: String, request: Request) =>
+        ZIO.logInfo(s"PUT /medicines/$id")
         request.body.asString
           .map(_.fromJson[ApiMedicine])
           .flatMap {
@@ -81,7 +77,9 @@ object MedicineApi {
                 repo.getById(id).flatMap {
                   case Some(_) =>
                     repo.update(id, medicine) *>
-                      repo.getById(id).map(medicine => Response.json(medicine.toJson))
+                      repo
+                        .getById(id)
+                        .map(medicine => Response.json(medicine.toJson))
                   case None => ZIO.succeed(Response.status(Status.NotFound))
                 }
               }
@@ -96,6 +94,7 @@ object MedicineApi {
     // Delete
     Method.DELETE / "medicines" / string("id") -> handler {
       (id: String, request: Request) =>
+        ZIO.logInfo(s"DELETE /medicines/$id")
         ZIO
           .serviceWithZIO[MedicineRepository](repo => {
             repo.getById(id).flatMap {
@@ -116,6 +115,7 @@ object MedicineApi {
     // add Stock
     Method.POST / "medicines" / string("id") / "addStock" -> handler {
       (id: String, request: Request) =>
+        ZIO.logInfo(s"POST /medicines/$id/addStock")
         request.queryParam("amount") match {
           case Some(amount) =>
             ZIO
@@ -146,5 +146,5 @@ object MedicineApi {
             )
         }
     }
-  ) @@ cors(config) // routes
+  ) @@ cors(MedicateCorsConfig.allAllowed) // routes
 }

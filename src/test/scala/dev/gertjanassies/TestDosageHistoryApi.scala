@@ -4,21 +4,14 @@ import zio.test._
 import zio._
 import zio.redis._
 import zio.redis.CodecSupplier
-import dev.gertjanassies.medicate.{
-  ApiDosageHistory,
-  DosageHistory,
-  DosageHistoryRepository
-}
+import dev.gertjanassies.medicate.{ApiDosageHistory, DosageHistoryRepository}
 import java.time.LocalDate
 import zio.redis.embedded.EmbeddedRedis
 import zio.http._
 import zio.http.netty.NettyConfig
 import zio.http.netty.server.NettyDriver
 import zio.json.DecoderOps
-import DosageHistory._
 import ApiDosageHistory._
-import dev.gertjanassies.medicate.DosageHistoryApi
-import zio.http.Header.Origin
 
 object TestDosageHistoryApi extends ZIOSpecDefault {
   val prefix = "test:repo:dosagehistory:tdha"
@@ -76,28 +69,6 @@ object TestDosageHistoryApi extends ZIOSpecDefault {
           assertTrue(histories.isRight) &&
           assertTrue(histories.right.get.length == 1) &&
           assertTrue(histories.right.get.map(_.date).contains(today))
-      },
-      test("CORS Config should allow for localhost") {
-        val cors_config = DosageHistoryApi.config
-        assertTrue(
-          cors_config.allowedOrigin(Origin("http", "localhost", None)).isDefined
-        )
-        assertTrue(
-          cors_config
-            .allowedOrigin(Origin("http", "localhost", None))
-            .get
-            .headerName == "Access-Control-Allow-Origin"
-        )
-        assertTrue(
-          cors_config
-            .allowedOrigin(Origin("http", "localhost", None))
-            .get
-            .renderedValue == "http://localhost"
-        )
-
-        assertTrue(
-          cors_config.allowedOrigin(Origin("http", "example.com", None)).isEmpty
-        )
       }
     ) @@ TestAspect.sequential
       @@ TestAspect.after(

@@ -4,6 +4,8 @@ val zioVersion               = "2.1.14"
 val zioHttpVersion           = "3.0.1"
 val zioRedisVersion          = "1.0.0"
 val zioSchemsProtobufVersion = "1.5.0"
+val zioLoggingVersion        = "2.1.15"
+val zioLoggingSlf4jVersion  = "2.1.15"
 
 val zioTestVersion            = "2.1.14"
 val zioTestHttpTestKitVersion = "3.0.1"
@@ -18,14 +20,14 @@ lazy val root = project
     semanticdbEnabled := true,
     scalacOptions += { "-Wunused:imports" },
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio"                 % zioVersion,
-      "dev.zio" %% "zio-http"            % zioHttpVersion,
-      "dev.zio" %% "zio-redis"           % zioRedisVersion,
-      "dev.zio" %% "zio-schema-protobuf" % zioSchemsProtobufVersion,
-      "dev.zio" %% "zio-test"            % zioTestVersion            % Test,
-      "dev.zio" %% "zio-test-sbt"        % zioTestVersion            % Test,
-      "dev.zio" %% "zio-http-testkit"    % zioTestHttpTestKitVersion % Test,
-      "dev.zio" %% "zio-redis-embedded"  % "1.0.0"                   % Test
+      "dev.zio"   %% "zio"                 % zioVersion,
+      "dev.zio"   %% "zio-http"            % zioHttpVersion,
+      "dev.zio"   %% "zio-redis"           % zioRedisVersion,
+      "dev.zio"   %% "zio-schema-protobuf" % zioSchemsProtobufVersion,
+      "dev.zio"   %% "zio-test"            % zioTestVersion            % Test,
+      "dev.zio"   %% "zio-test-sbt"        % zioTestVersion            % Test,
+      "dev.zio"   %% "zio-http-testkit"    % zioTestHttpTestKitVersion % Test,
+      "dev.zio"   %% "zio-redis-embedded"  % "1.0.0"                   % Test
     ),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )

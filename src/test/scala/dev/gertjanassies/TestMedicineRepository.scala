@@ -16,11 +16,11 @@ object TestMedicineRepository extends ZIOSpecDefault {
   val medicine_prefix = "test:repo:medicine:tmr"
 
   val testMedicine = ApiMedicine(
-      name = "Test",
-      dose = 1.0,
-      unit = "mg",
-      stock = 10
-    )
+    name = "Test",
+    dose = 1.0,
+    unit = "mg",
+    stock = 10
+  )
 
   def spec = {
     val testSuite = suite("MedicineRepository should")(
@@ -36,7 +36,9 @@ object TestMedicineRepository extends ZIOSpecDefault {
           repo <- ZIO.service[MedicineRepository]
           id <- repo.create(testMedicine)
           gotten <- repo.getById(id)
-        } yield assertTrue(gotten.isDefined && gotten.get.name == testMedicine.name)
+        } yield assertTrue(
+          gotten.isDefined && gotten.get.name == testMedicine.name
+        )
       },
       test("be able to get multiple medications") {
         val m1 = testMedicine.copy(name = "test_get_all1")

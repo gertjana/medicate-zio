@@ -12,9 +12,6 @@ import dev.gertjanassies.medicate.Medicine
 import Medicine._
 import zio.json.EncoderOps
 import zio.json.DecoderOps
-import dev.gertjanassies.medicate.MedicineApi
-import zio.http.Header.Origin
-import zio.http.Middleware.CorsConfig
 import dev.gertjanassies.medicate.ApiMedicine
 
 object TestMedicineApi extends ZIOSpecDefault {
@@ -24,7 +21,7 @@ object TestMedicineApi extends ZIOSpecDefault {
     name = "Test",
     dose = 1.0,
     unit = "mg",
-    stock = 10  
+    stock = 10
   )
   val testMedicine2 = testMedicine.copy(name = "test2")
   val testMedicine3 = testMedicine.copy(name = "test3")
@@ -191,28 +188,6 @@ object TestMedicineApi extends ZIOSpecDefault {
             )
           )
         } yield assertTrue(response.status == Status.NotFound)
-      },
-      test("CORS Config should allow for localhost") {
-        val cors_config = MedicineApi.config
-        assertTrue(
-          cors_config.allowedOrigin(Origin("http", "localhost", None)).isDefined
-        )
-        assertTrue(
-          cors_config
-            .allowedOrigin(Origin("http", "localhost", None))
-            .get
-            .headerName == "Access-Control-Allow-Origin"
-        )
-        assertTrue(
-          cors_config
-            .allowedOrigin(Origin("http", "localhost", None))
-            .get
-            .renderedValue == "http://localhost"
-        )
-
-        assertTrue(
-          cors_config.allowedOrigin(Origin("http", "example.com", None)).isEmpty
-        )
       },
       test("not able to take a dose for a non-existing medicine") {
         for {

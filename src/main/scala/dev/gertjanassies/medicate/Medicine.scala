@@ -44,10 +44,7 @@ final case class ApiMedicine(
     dose: Double,
     unit: String,
     stock: Double
-) {
-  def toMedicine(id: MedicineId): Medicine =
-    Medicine(id, name, dose, unit, stock)
-}
+)
 
 object ApiMedicine {
   implicit val encoder: JsonEncoder[ApiMedicine] =

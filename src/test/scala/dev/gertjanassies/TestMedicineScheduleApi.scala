@@ -6,13 +6,10 @@ import zio.redis.embedded.EmbeddedRedis
 import zio.http._
 import zio.http.netty.NettyConfig
 import zio.http.netty.server.NettyDriver
-// import zio.http.Header.Origin
-// import zio.http.Middleware.CorsConfig
 import zio.test._
 import zio.json.EncoderOps
 import zio.json.DecoderOps
 import dev.gertjanassies.medicate._
-import zio.http.Header.Origin
 
 object TestMedicineScheduleApi extends ZIOSpecDefault {
   val schedule_prefix = "test:api:schedule:tmsa"
@@ -146,31 +143,19 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
             Request.get(URL.root.port(port) / "schedules" / "daily")
           )
           body <- response.body.asString
-          daily = body.fromJson[List[medicate.DailySchedule]]
+          _ = println(body)
+          daily = body.fromJson[List[medicate.DailyScheduleWithDate]]
         } yield assertTrue(response.status == Status.Ok) &&
-          assertTrue(daily.isRight)
-      },
-      test("CORS Config should allow for localhost") {
-        val cors_config = MedicineApi.config
-        assertTrue(
-          cors_config.allowedOrigin(Origin("http", "localhost", None)).isDefined
-        )
-        assertTrue(
-          cors_config
-            .allowedOrigin(Origin("http", "localhost", None))
-            .get
-            .headerName == "Access-Control-Allow-Origin"
-        )
-        assertTrue(
-          cors_config
-            .allowedOrigin(Origin("http", "localhost", None))
-            .get
-            .renderedValue == "http://localhost"
-        )
-
-        assertTrue(
-          cors_config.allowedOrigin(Origin("http", "example.com", None)).isEmpty
-        )
+          assertTrue(daily.isRight) &&
+          assertTrue(daily.toOption.get.length == 1) &&
+          assertTrue(daily.toOption.get.head.schedules.length == 1) &&
+          assertTrue(daily.toOption.get.head.schedules.head.time == "12:00") &&
+          assertTrue(
+            daily.toOption.get.head.schedules.head.medicines.length == 1
+          ) &&
+          assertTrue(
+            daily.toOption.get.head.schedules.head.medicines.head._1.isDefined
+          )
       }
     ) @@ TestAspect.sequential
       @@ TestAspect.after(

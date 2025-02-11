@@ -3,6 +3,7 @@ package dev.gertjanassies.medicate
 import zio._
 import zio.redis._
 import zio.json._
+import java.time.LocalDate
 
 class MedicineScheduleRepository(redis: Redis, prefix: String) {
 
@@ -72,10 +73,20 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
       with DosageHistoryRepository,
     Throwable,
     List[DailySchedule]
+  ] = getDailyScheduleForDate(LocalDate.now().toString).map(_.schedules)
+
+  def getDailyScheduleForDate(date: String): ZIO[
+    MedicineScheduleRepository
+      with MedicineRepository
+      with DosageHistoryRepository,
+    Throwable,
+    DailyScheduleWithDate
   ] = for {
     schedules <- getAll
     medicines <- ZIO.serviceWithZIO[MedicineRepository](_.getAll)
-    dosageHistory <- ZIO.serviceWithZIO[DosageHistoryRepository](_.getToday)
+    dosageHistory <- ZIO.serviceWithZIO[DosageHistoryRepository](
+      _.getForDate(date)
+    )
     groupedSchedules = schedules.groupBy(_.time).map { case (time, schedules) =>
       (
         time,
@@ -89,7 +100,20 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
         taken = dosageHistory.find(_.time == time).map(_ => true)
       )
     })
-  } yield dailySchedules.toList.sorted
+  } yield DailyScheduleWithDate(date, dailySchedules.toList.sorted)
+
+  def getDailyScheduleForLastWeek(): ZIO[
+    MedicineScheduleRepository
+      with MedicineRepository
+      with DosageHistoryRepository,
+    Throwable,
+    List[DailyScheduleWithDate]
+  ] = for {
+    dates <- ZIO.succeed(
+      (0L to 6L).map(d => LocalDate.now().minusDays(d).toString)
+    )
+    schedules <- ZIO.foreach(dates)(date => getDailyScheduleForDate(date))
+  } yield schedules.toList
 
   def addtakendosages(time: String, date: String): ZIO[
     MedicineScheduleRepository

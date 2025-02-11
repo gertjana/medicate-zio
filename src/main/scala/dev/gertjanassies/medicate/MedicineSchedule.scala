@@ -25,14 +25,6 @@ object MedicineSchedule {
   implicit def orderingByTime[A <: MedicineSchedule]: Ordering[A] =
     Ordering.by(schedule => schedule.time.replaceAll(":", "").toInt)
 
-  def create(
-      id: String,
-      time: String,
-      medicineId: MedicineId,
-      description: String,
-      amount: Double
-  ): MedicineSchedule =
-    MedicineSchedule(id, time, medicineId, description, amount)
 }
 
 final case class ApiMedicineSchedule(
@@ -65,4 +57,22 @@ object DailySchedule {
 
   implicit def orderingById[A <: DailySchedule]: Ordering[A] =
     Ordering.by(schedule => schedule.time)
+}
+
+final case class DailyScheduleWithDate(
+    date: String,
+    schedules: List[DailySchedule]
+) {}
+
+object DailyScheduleWithDate {
+  implicit val encoder: JsonEncoder[DailyScheduleWithDate] =
+    DeriveJsonEncoder.gen[DailyScheduleWithDate]
+  implicit val decoder: JsonDecoder[DailyScheduleWithDate] =
+    DeriveJsonDecoder.gen[DailyScheduleWithDate]
+
+  implicit val itemSchema: Schema[DailyScheduleWithDate] =
+    DeriveSchema.gen[DailyScheduleWithDate]
+
+  implicit def orderingById[A <: DailyScheduleWithDate]: Ordering[A] =
+    Ordering.by(schedule => schedule.date)
 }
