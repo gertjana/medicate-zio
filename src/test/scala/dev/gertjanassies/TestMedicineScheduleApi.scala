@@ -39,7 +39,8 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
       medicineId = "?",
       amount = 1.0
     )
-    val testDosageHistory2 = testDosageHistory.copy(date = LocalDate.now().minusDays(1).toString)
+    val testDosageHistory2 =
+      testDosageHistory.copy(date = LocalDate.now().minusDays(1).toString)
 
     val testSuite = suite("Medicate Medicine Schedule API should ")(
       test("respond correctly to getting a list of schedules") {
@@ -198,7 +199,7 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
           _ <- ZIO.service[Redis]
           m_repo <- ZIO.service[MedicineRepository]
           m_id1 <- m_repo.create(testMedicine1)
-          s_repo <- ZIO.service[MedicineScheduleRepository] 
+          s_repo <- ZIO.service[MedicineScheduleRepository]
           s_id1 <- s_repo.create(testSchedule1.copy(medicineId = m_id1))
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
@@ -223,10 +224,11 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
           port <- ZIO.serviceWithZIO[Server](_.port)
           _ <- TestServer.addRoutes(medicate.MedicineScheduleApi.routes)
           response <- client.batched(
-            Request.post((URL.root.port(port) / "schedules" / "takedose").setQueryParams(
-              Map("time" -> Chunk("12:00")))
-            , 
-            Body.fromString(""))
+            Request.post(
+              (URL.root.port(port) / "schedules" / "takedose")
+                .setQueryParams(Map("time" -> Chunk("12:00"))),
+              Body.fromString("")
+            )
           )
           body <- response.body.asString
           dosage = body.fromJson[List[medicate.DailySchedule]]
@@ -249,21 +251,37 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
           port <- ZIO.serviceWithZIO[Server](_.port)
           _ <- TestServer.addRoutes(medicate.MedicineScheduleApi.routes)
           response <- client.batched(
-            Request.post((URL.root.port(port) / "schedules" / "takedose").setQueryParams( 
-              Map("time" -> Chunk("12:00"), "date" -> Chunk(LocalDate.now().minusDays(1).toString)))
-            , 
-            Body.fromString(""))
+            Request.post(
+              (URL.root.port(port) / "schedules" / "takedose").setQueryParams(
+                Map(
+                  "time" -> Chunk("12:00"),
+                  "date" -> Chunk(LocalDate.now().minusDays(1).toString)
+                )
+              ),
+              Body.fromString("")
+            )
           )
           body <- response.body.asString
           dosage = body.fromJson[List[medicate.DailyScheduleWithDate]]
         } yield assertTrue(response.status == Status.Ok) &&
           assertTrue(dosage.isRight) &&
           assertTrue(dosage.toOption.get.length == 1) &&
-          assertTrue(dosage.toOption.get.head.date == LocalDate.now().minusDays(1).toString) &&
+          assertTrue(
+            dosage.toOption.get.head.date == LocalDate
+              .now()
+              .minusDays(1)
+              .toString
+          ) &&
           assertTrue(dosage.toOption.get.head.schedules.head.time == "12:00") &&
-          assertTrue(dosage.toOption.get.head.schedules.head.medicines.length == 1) &&
-          assertTrue(dosage.toOption.get.head.schedules.head.medicines.head._1.isDefined) &&
-          assertTrue(dosage.toOption.get.head.schedules.head.medicines.head._1.get.stock == 9)
+          assertTrue(
+            dosage.toOption.get.head.schedules.head.medicines.length == 1
+          ) &&
+          assertTrue(
+            dosage.toOption.get.head.schedules.head.medicines.head._1.isDefined
+          ) &&
+          assertTrue(
+            dosage.toOption.get.head.schedules.head.medicines.head._1.get.stock == 9
+          )
       }
     ) @@ TestAspect.sequential
       @@ TestAspect.after(
