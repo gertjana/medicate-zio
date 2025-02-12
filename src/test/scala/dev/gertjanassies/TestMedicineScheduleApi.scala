@@ -10,6 +10,7 @@ import zio.test._
 import zio.json.EncoderOps
 import zio.json.DecoderOps
 import dev.gertjanassies.medicate._
+import java.time.LocalDate
 
 object TestMedicineScheduleApi extends ZIOSpecDefault {
   val schedule_prefix = "test:api:schedule:tmsa"
@@ -31,6 +32,14 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
     )
     val testSchedule2 = testSchedule1.copy(medicineId = "2")
     val testSchedule3 = testSchedule1.copy(medicineId = "1", time = "09:00")
+
+    val testDosageHistory = ApiDosageHistory(
+      date = LocalDate.now().toString,
+      time = "12:00",
+      medicineId = "?",
+      amount = 1.0
+    )
+    val testDosageHistory2 = testDosageHistory.copy(date = LocalDate.now().minusDays(1).toString)
 
     val testSuite = suite("Medicate Medicine Schedule API should ")(
       test("respond correctly to getting a list of schedules") {
@@ -160,6 +169,101 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
           assertTrue(
             daily.toOption.get.head.medicines.head._1.isDefined
           )
+      },
+      test("be able to get a past daily schedules") {
+        for {
+          _ <- ZIO.service[Redis]
+          m_repo <- ZIO.service[MedicineRepository]
+          m_id1 <- m_repo.create(testMedicine1)
+          s_repo <- ZIO.service[MedicineScheduleRepository]
+          s_id1 <- s_repo.create(testSchedule1.copy(medicineId = m_id1))
+          d_repo <- ZIO.service[DosageHistoryRepository]
+          d_id1 <- d_repo.create(testDosageHistory.copy(medicineId = m_id1))
+          d_id2 <- d_repo.create(testDosageHistory2.copy(medicineId = m_id1))
+          client <- ZIO.service[Client]
+          port <- ZIO.serviceWithZIO[Server](_.port)
+          _ <- TestServer.addRoutes(medicate.MedicineScheduleApi.routes)
+          response <- client.batched(
+            Request.get(URL.root.port(port) / "schedules" / "past")
+          )
+          body <- response.body.asString
+          daily = body.fromJson[List[medicate.DailyScheduleWithDate]]
+        } yield assertTrue(response.status == Status.Ok) &&
+          assertTrue(daily.isRight) &&
+          assertTrue(daily.toOption.get.length == 1) &&
+          assertTrue(daily.toOption.get.head.schedules.head.time == "12:00")
+      },
+      test("be able to get a past daily schedules with no schedules") {
+        for {
+          _ <- ZIO.service[Redis]
+          m_repo <- ZIO.service[MedicineRepository]
+          m_id1 <- m_repo.create(testMedicine1)
+          s_repo <- ZIO.service[MedicineScheduleRepository] 
+          s_id1 <- s_repo.create(testSchedule1.copy(medicineId = m_id1))
+          client <- ZIO.service[Client]
+          port <- ZIO.serviceWithZIO[Server](_.port)
+          _ <- TestServer.addRoutes(medicate.MedicineScheduleApi.routes)
+          response <- client.batched(
+            Request.get(URL.root.port(port) / "schedules" / "past")
+          )
+          body <- response.body.asString
+          daily = body.fromJson[List[medicate.DailyScheduleWithDate]]
+        } yield assertTrue(response.status == Status.Ok) &&
+          assertTrue(daily.isRight) &&
+          assertTrue(daily.toOption.get.length == 0)
+      },
+      test("be able to take a dosage today") {
+        for {
+          _ <- ZIO.service[Redis]
+          m_repo <- ZIO.service[MedicineRepository]
+          m_id1 <- m_repo.create(testMedicine1)
+          s_repo <- ZIO.service[MedicineScheduleRepository]
+          s_id1 <- s_repo.create(testSchedule1.copy(medicineId = m_id1))
+          client <- ZIO.service[Client]
+          port <- ZIO.serviceWithZIO[Server](_.port)
+          _ <- TestServer.addRoutes(medicate.MedicineScheduleApi.routes)
+          response <- client.batched(
+            Request.post((URL.root.port(port) / "schedules" / "takedose").setQueryParams(
+              Map("time" -> Chunk("12:00")))
+            , 
+            Body.fromString(""))
+          )
+          body <- response.body.asString
+          dosage = body.fromJson[List[medicate.DailySchedule]]
+        } yield assertTrue(response.status == Status.Ok) &&
+          assertTrue(dosage.isRight) &&
+          assertTrue(dosage.toOption.get.length == 1) &&
+          assertTrue(dosage.toOption.get.head.time == "12:00") &&
+          assertTrue(dosage.toOption.get.head.medicines.length == 1) &&
+          assertTrue(dosage.toOption.get.head.medicines.head._1.isDefined) &&
+          assertTrue(dosage.toOption.get.head.medicines.head._1.get.stock == 9)
+      },
+      test("be able to take a dosage in the past") {
+        for {
+          _ <- ZIO.service[Redis]
+          m_repo <- ZIO.service[MedicineRepository]
+          m_id1 <- m_repo.create(testMedicine1)
+          s_repo <- ZIO.service[MedicineScheduleRepository]
+          s_id1 <- s_repo.create(testSchedule1.copy(medicineId = m_id1))
+          client <- ZIO.service[Client]
+          port <- ZIO.serviceWithZIO[Server](_.port)
+          _ <- TestServer.addRoutes(medicate.MedicineScheduleApi.routes)
+          response <- client.batched(
+            Request.post((URL.root.port(port) / "schedules" / "takedose").setQueryParams( 
+              Map("time" -> Chunk("12:00"), "date" -> Chunk(LocalDate.now().minusDays(1).toString)))
+            , 
+            Body.fromString(""))
+          )
+          body <- response.body.asString
+          dosage = body.fromJson[List[medicate.DailyScheduleWithDate]]
+        } yield assertTrue(response.status == Status.Ok) &&
+          assertTrue(dosage.isRight) &&
+          assertTrue(dosage.toOption.get.length == 1) &&
+          assertTrue(dosage.toOption.get.head.date == LocalDate.now().minusDays(1).toString) &&
+          assertTrue(dosage.toOption.get.head.schedules.head.time == "12:00") &&
+          assertTrue(dosage.toOption.get.head.schedules.head.medicines.length == 1) &&
+          assertTrue(dosage.toOption.get.head.schedules.head.medicines.head._1.isDefined) &&
+          assertTrue(dosage.toOption.get.head.schedules.head.medicines.head._1.get.stock == 9)
       }
     ) @@ TestAspect.sequential
       @@ TestAspect.after(
