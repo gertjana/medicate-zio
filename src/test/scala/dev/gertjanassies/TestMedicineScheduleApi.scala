@@ -136,6 +136,11 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
       },
       test("be able to get a daily schedule") {
         for {
+          _ <- ZIO.service[Redis]
+          m_repo <- ZIO.service[MedicineRepository]
+          m_id1 <- m_repo.create(testMedicine1)
+          s_repo <- ZIO.service[MedicineScheduleRepository]
+          s_id1 <- s_repo.create(testSchedule1.copy(medicineId = m_id1))
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           _ <- TestServer.addRoutes(medicate.MedicineScheduleApi.routes)
@@ -143,18 +148,17 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
             Request.get(URL.root.port(port) / "schedules" / "daily")
           )
           body <- response.body.asString
-          _ = println(body)
-          daily = body.fromJson[List[medicate.DailyScheduleWithDate]]
+          // _ = println(body)
+          daily = body.fromJson[List[medicate.DailySchedule]]
         } yield assertTrue(response.status == Status.Ok) &&
           assertTrue(daily.isRight) &&
           assertTrue(daily.toOption.get.length == 1) &&
-          assertTrue(daily.toOption.get.head.schedules.length == 1) &&
-          assertTrue(daily.toOption.get.head.schedules.head.time == "12:00") &&
+          assertTrue(daily.toOption.get.head.time == "12:00") &&
           assertTrue(
-            daily.toOption.get.head.schedules.head.medicines.length == 1
+            daily.toOption.get.head.medicines.length == 1
           ) &&
           assertTrue(
-            daily.toOption.get.head.schedules.head.medicines.head._1.isDefined
+            daily.toOption.get.head.medicines.head._1.isDefined
           )
       }
     ) @@ TestAspect.sequential

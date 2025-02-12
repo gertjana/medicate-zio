@@ -102,18 +102,17 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
     })
   } yield DailyScheduleWithDate(date, dailySchedules.toList.sorted)
 
-  def getDailyScheduleForLastWeek(): ZIO[
+  def getPastDailySchedules(): ZIO[
     MedicineScheduleRepository
       with MedicineRepository
       with DosageHistoryRepository,
     Throwable,
     List[DailyScheduleWithDate]
   ] = for {
-    dates <- ZIO.succeed(
-      (0L to 6L).map(d => LocalDate.now().minusDays(d).toString)
-    )
+    dosageHistory <- ZIO.serviceWithZIO[DosageHistoryRepository](_.getAll)
+    dates <- ZIO.succeed(dosageHistory.map(_.date).toSet.toList.sorted.reverse)
     schedules <- ZIO.foreach(dates)(date => getDailyScheduleForDate(date))
-  } yield schedules.toList
+  } yield if (schedules.isEmpty) List.empty else schedules.toList.tail
 
   def addtakendosages(time: String, date: String): ZIO[
     MedicineScheduleRepository

@@ -114,11 +114,11 @@ object MedicineScheduleApi {
           )
         )
     },
-    Method.GET / "schedules" / "lastweek" -> handler {
-      ZIO.logInfo("GET /schedules/lastweek")
+    Method.GET / "schedules" / "past" -> handler {
+      ZIO.logInfo("GET /schedules/past")
       ZIO
         .serviceWithZIO[MedicineScheduleRepository](
-          _.getDailyScheduleForLastWeek()
+          _.getPastDailySchedules()
         )
         .map(daily => Response.json(daily.toJson))
         .catchAll(error =>
@@ -142,7 +142,7 @@ object MedicineScheduleApi {
                 _ <- repo.addtakendosages(time, date)
                 schedule <-
                   if (date == today) repo.getDailySchedule().map(_.toJson)
-                  else repo.getDailyScheduleForLastWeek().map(_.toJson)
+                  else repo.getPastDailySchedules().map(_.toJson)
               } yield Response.json(schedule)
             }
             .catchAll(error =>
