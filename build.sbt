@@ -2,7 +2,7 @@ val scala3Version = "3.3.4"
 
 val zioVersion = "2.1.14"
 val zioHttpVersion = "3.0.1"
-val zioRedisVersion = "1.0.0"
+val zioRedisVersion = "1.0.1"
 val zioSchemsProtobufVersion = "1.5.0"
 val zioLoggingVersion = "2.1.15"
 val zioLoggingSlf4jVersion = "2.1.15"
@@ -27,7 +27,7 @@ lazy val root = project
       "dev.zio" %% "zio-test" % zioTestVersion % Test,
       "dev.zio" %% "zio-test-sbt" % zioTestVersion % Test,
       "dev.zio" %% "zio-http-testkit" % zioTestHttpTestKitVersion % Test,
-      "dev.zio" %% "zio-redis-embedded" % "1.0.0" % Test
+      "dev.zio" %% "zio-redis-embedded" % "1.0.1" % Test
     ),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
