@@ -70,6 +70,16 @@ class MedicineRepository(redis: Redis, prefix: String) {
       }
     } yield result
 
+
+  def addStock(id: String, amount: Double): Task[Boolean] = for {
+    maybeMedicine <- getById(id)
+    result <- maybeMedicine match {
+      case Some(medicine) =>
+        val newStock = medicine.stock + amount
+        update(id, medicine.toApiMedicine.copy(stock = newStock))
+      case None => ZIO.succeed(false)
+    }
+  } yield result
 }
 
 object MedicineRepository {

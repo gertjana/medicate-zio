@@ -159,6 +159,36 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
       }
     } yield true
   }
+  
+  def calculateDaysLeft(): ZIO[
+    MedicineScheduleRepository
+      with MedicineRepository
+      with DosageHistoryRepository,
+    Throwable,
+    List[(Medicine, Int)]
+  ] = for {
+    medicines <- ZIO.serviceWithZIO[MedicineRepository](_.getAll)
+    dailySchedules <- getDailySchedule()
+    dailyUsage <- ZIO.succeed(
+      dailySchedules
+        .flatMap(_.medicines)
+        .groupBy(_._1.get)
+        .view
+        .mapValues(doses => doses.map(_._2).sum)
+        .toMap
+    )
+    daysLeft <- ZIO.succeed(
+      dailyUsage.map {
+        case (medicine: Medicine, usage: Double) => {
+          (
+            medicine,
+            if (usage != 0) { (medicine.stock / usage).toInt }
+            else { medicine.stock.toInt }
+          )
+        }
+      }
+    )
+  } yield daysLeft.toList.sorted
 }
 
 object MedicineScheduleRepository {

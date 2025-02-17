@@ -157,6 +157,17 @@ object MedicineScheduleApi {
             Response.text("Time is required").status(Status.BadRequest)
           )
       }
+    },
+    Method.GET / "schedules" / "daysleft" -> handler {
+      ZIO.logInfo("GET /schedules/daysleft")
+      ZIO
+        .serviceWithZIO[MedicineScheduleRepository](_.calculateDaysLeft())
+        .map(daysLeft => Response.json(daysLeft.toJson))
+        .catchAll(error =>
+          ZIO.succeed(
+            Response.text(error.getMessage).status(Status.InternalServerError)
+          )
+        )
     }
   ) @@ cors(MedicateCorsConfig.allAllowed)
 }

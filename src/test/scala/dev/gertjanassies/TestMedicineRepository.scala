@@ -73,6 +73,15 @@ object TestMedicineRepository extends ZIOSpecDefault {
           _ <- repo.delete(id)
           gotten <- repo.getById(id)
         } yield assert(gotten)(isNone)
+      },
+      test("be able to add stock to a Medication") {
+        for {
+          redis <- ZIO.service[Redis]
+          repo <- ZIO.service[MedicineRepository]
+          id <- repo.create(testMedicine)
+          _ <- repo.addStock(id, 10)
+          gotten <- repo.getById(id)
+        } yield assertTrue(gotten.isDefined && gotten.get.stock == 20)
       }
     ) @@ TestAspect.sequential
       @@ TestAspect.after(

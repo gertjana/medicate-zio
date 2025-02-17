@@ -118,6 +118,41 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
           assertTrue(actual.head.time == "12:00") &&
           assertTrue(actual.head.medicines.length == 1) &&
           assertTrue(actual.head.medicines.head._1.isDefined))
+      },
+      test("be able to calculate days left") {
+        val medicine1 = ApiMedicine(
+          name = "test_medicine1",
+          dose = 1.0,
+          unit = "mg",
+          stock = 10
+        )
+        val medicine2 = medicine1.copy(name = "test_medicine2")
+        val schedule1 = ApiMedicineSchedule(
+          medicineId = "",
+          time = "12:00", 
+          amount = 1.0
+        )
+        val schedule2 = schedule1.copy(medicineId = "2")
+        val schedule3 = schedule1.copy(medicineId = "1", time = "09:00")
+        
+        for {
+          redis <- ZIO.service[Redis]
+          repo <- ZIO.service[MedicineScheduleRepository]
+          m_repo <- ZIO.service[MedicineRepository]
+          m_id1 <- m_repo.create(medicine1)
+          m_id2 <- m_repo.create(medicine2)
+          _ <- repo.create(schedule1.copy(medicineId = m_id1))
+          _ <- repo.create(schedule2.copy(medicineId = m_id2))
+          _ <- repo.create(schedule3.copy(medicineId = m_id1))
+          _ <- repo.addtakendosages("12:00", "2024-01-01")
+          _ <- repo.addtakendosages("09:00", "2024-01-01")
+          actual <- repo.calculateDaysLeft()
+          _ <- ZIO.succeed(println(actual))
+        } yield assertTrue(actual.length == 2) &&
+          assertTrue(actual.head._1.name == "test_medicine1") &&
+          assertTrue(actual.last._1.name == "test_medicine2") &&
+          assertTrue(actual.head._2 == 4.0) &&
+          assertTrue(actual.last._2 == 9.0) 
       }
     ) @@ TestAspect.sequential
       @@ TestAspect.after(
