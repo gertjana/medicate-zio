@@ -16,6 +16,7 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
   val schedule_prefix = "test:api:schedule:tmsa"
   val medicine_prefix = "test:api:medicine:tmsa"
   val dosage_prefix = "test:api:dosage:tmsa"
+
   def spec = {
     val testMedicine1 = ApiMedicine(
       name = "Test",
@@ -158,7 +159,6 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
             Request.get(URL.root.port(port) / "schedules" / "daily")
           )
           body <- response.body.asString
-          // _ = println(body)
           daily = body.fromJson[List[medicate.DailySchedule]]
         } yield assertTrue(response.status == Status.Ok) &&
           assertTrue(daily.isRight) &&
@@ -308,7 +308,7 @@ object TestMedicineScheduleApi extends ZIOSpecDefault {
         Redis.singleNode,
         MedicineScheduleRepository.layer(schedule_prefix),
         MedicineRepository.layer(medicine_prefix),
-        DosageHistoryRepository.layer(schedule_prefix),
+        DosageHistoryRepository.layer(dosage_prefix),
         TestServer.layer,
         Client.default,
         ZLayer.succeed(Server.Config.default.onAnyOpenPort),

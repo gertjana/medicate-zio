@@ -147,7 +147,6 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
           _ <- repo.addtakendosages("12:00", "2024-01-01")
           _ <- repo.addtakendosages("09:00", "2024-01-01")
           actual <- repo.calculateDaysLeft()
-          _ <- ZIO.succeed(println(actual))
         } yield assertTrue(actual.length == 2) &&
           assertTrue(actual.head._1.name == "test_medicine1") &&
           assertTrue(actual.last._1.name == "test_medicine2") &&
