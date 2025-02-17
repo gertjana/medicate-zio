@@ -129,12 +129,12 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
         val medicine2 = medicine1.copy(name = "test_medicine2")
         val schedule1 = ApiMedicineSchedule(
           medicineId = "",
-          time = "12:00", 
+          time = "12:00",
           amount = 1.0
         )
         val schedule2 = schedule1.copy(medicineId = "2")
         val schedule3 = schedule1.copy(medicineId = "1", time = "09:00")
-        
+
         for {
           redis <- ZIO.service[Redis]
           repo <- ZIO.service[MedicineScheduleRepository]
@@ -152,7 +152,7 @@ object TestMedicineScheduleRepository extends ZIOSpecDefault {
           assertTrue(actual.head._1.name == "test_medicine1") &&
           assertTrue(actual.last._1.name == "test_medicine2") &&
           assertTrue(actual.head._2 == 4.0) &&
-          assertTrue(actual.last._2 == 9.0) 
+          assertTrue(actual.last._2 == 9.0)
       }
     ) @@ TestAspect.sequential
       @@ TestAspect.after(

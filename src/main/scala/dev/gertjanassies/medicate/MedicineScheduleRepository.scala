@@ -159,7 +159,7 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
       }
     } yield true
   }
-  
+
   def calculateDaysLeft(): ZIO[
     MedicineScheduleRepository
       with MedicineRepository

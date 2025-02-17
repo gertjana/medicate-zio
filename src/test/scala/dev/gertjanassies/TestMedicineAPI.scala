@@ -206,22 +206,25 @@ object TestMedicineApi extends ZIOSpecDefault {
       test("be able to add stock to a medication") {
         for {
           repo <- ZIO.service[MedicineRepository]
-          id <- repo.create(testMedicine) 
+          id <- repo.create(testMedicine)
           client <- ZIO.service[Client]
           port <- ZIO.serviceWithZIO[Server](_.port)
           testRequest = Request.get(url = URL.root.port(port))
           _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
-            Request.post((testRequest.url / "medicines" / id / "addStock").setQueryParams(
+            Request.post(
+              (testRequest.url / "medicines" / id / "addStock").setQueryParams(
                 Map(
                   "amount" -> Chunk("10")
                 )
-              ),Body.fromString(""))
+              ),
+              Body.fromString("")
+            )
           )
           body <- response.body.asString
         } yield assertTrue(response.status == Status.Ok) &&
           assertTrue(body.fromJson[Medicine].isRight) &&
-          assertTrue(body.fromJson[Medicine].right.get.stock == 20) 
+          assertTrue(body.fromJson[Medicine].right.get.stock == 20)
       },
       test("not be able to add stock to a non-existing medicine") {
         for {
@@ -230,11 +233,15 @@ object TestMedicineApi extends ZIOSpecDefault {
           testRequest = Request.get(url = URL.root.port(port))
           _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
-            Request.post((testRequest.url / "medicines" / "non-existing-id" / "addStock").setQueryParams(
-                Map(
-                  "amount" -> Chunk("10")  
-                )
-              ),Body.fromString(""))
+            Request.post(
+              (testRequest.url / "medicines" / "non-existing-id" / "addStock")
+                .setQueryParams(
+                  Map(
+                    "amount" -> Chunk("10")
+                  )
+                ),
+              Body.fromString("")
+            )
           )
         } yield assertTrue(response.status == Status.NotFound)
       },
@@ -245,7 +252,10 @@ object TestMedicineApi extends ZIOSpecDefault {
           testRequest = Request.get(url = URL.root.port(port))
           _ <- TestServer.addRoutes(medicate.MedicineApi.routes)
           response <- client.batched(
-            Request.post(testRequest.url / "medicines" / "non-existing-id" / "addStock",Body.fromString(""))
+            Request.post(
+              testRequest.url / "medicines" / "non-existing-id" / "addStock",
+              Body.fromString("")
+            )
           )
         } yield assertTrue(response.status == Status.BadRequest)
       }

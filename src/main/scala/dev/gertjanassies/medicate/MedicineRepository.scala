@@ -70,7 +70,6 @@ class MedicineRepository(redis: Redis, prefix: String) {
       }
     } yield result
 
-
   def addStock(id: String, amount: Double): Task[Boolean] = for {
     maybeMedicine <- getById(id)
     result <- maybeMedicine match {
