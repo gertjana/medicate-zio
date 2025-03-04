@@ -1,4 +1,4 @@
-val scala3Version = "3.3.4"
+val scala3Version = "3.3.5"
 
 val zioVersion = "2.1.14"
 val zioHttpVersion = "3.0.1"
