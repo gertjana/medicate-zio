@@ -3,7 +3,6 @@ package dev.gertjanassies
 import zio.test._
 import zio._
 import zio.redis._
-import zio.redis.CodecSupplier
 import dev.gertjanassies.medicate.{ApiDosageHistory, DosageHistoryRepository}
 import java.time.LocalDate
 import zio.redis.embedded.EmbeddedRedis
