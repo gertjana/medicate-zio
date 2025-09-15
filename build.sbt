@@ -1,13 +1,13 @@
 val scala3Version = "3.3.6"
 
-val zioHttpVersion = "3.5.0"
+val zioHttpVersion = "3.5.1"
 val zioVersion = "2.1.20"
 val zioSchemsProtobufVersion = "1.7.5"
 val zioRedisVersion = "1.1.5"
 val zioLoggingVersion = "2.1.15"
 val zioLoggingSlf4jVersion = "2.1.15"
 
-val zioTestHttpTestKitVersion = "3.5.0"
+val zioTestHttpTestKitVersion = "3.5.1"
 val zioTestVersion = "2.1.20"
 
 lazy val root = project
