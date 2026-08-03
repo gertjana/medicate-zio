@@ -13,7 +13,7 @@ jobs:
   scalafmt:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.ref }}
       - uses: coursier/setup-action@v1
@@ -58,9 +58,9 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Set up JDK 21
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         java-version: '21'
         distribution: 'temurin'
@@ -70,18 +70,18 @@ jobs:
     - name: Run tests
       run: sbt "coverage; test; coverageReport"
     - name: Upload coverage report
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./target/out/jvm/scala-3.3.8/medicate/scoverage-report/scoverage.xml
+        files: ./target/out/jvm/scala-3.3.8/medicate/scoverage-report/scoverage.xml
 
   assembly:
     runs-on: ubuntu-latest
     needs: test
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Set up JDK 21
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         java-version: '21'
         distribution: 'temurin'
