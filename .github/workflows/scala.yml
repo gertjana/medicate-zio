@@ -69,11 +69,24 @@ jobs:
       uses: sbt/setup-sbt@v1
     - name: Run tests
       run: sbt "coverage; test; coverageReport"
+    - name: Locate coverage report
+      id: coverage-file
+      run: |
+        coverage_file="$(find target -type f -path "*/scoverage-report/scoverage.xml" | head -n 1)"
+        if [ -z "$coverage_file" ]; then
+          coverage_file="$(find target -type f -path "*/coverage-report/cobertura.xml" | head -n 1)"
+        fi
+        if [ -z "$coverage_file" ]; then
+          echo "Coverage report file not found under target/" >&2
+          exit 1
+        fi
+        echo "file=$coverage_file" >> "$GITHUB_OUTPUT"
     - name: Upload coverage report
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./target/out/jvm/scala-3.3.8/medicate/scoverage-report/scoverage.xml
+        files: ${{ steps.coverage-file.outputs.file }}
+        disable_search: true
 
   assembly:
     runs-on: ubuntu-latest
@@ -91,7 +104,7 @@ jobs:
     - name: Run assembly
       run: sbt assembly
     - name: Archive artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: medicate-assembly.jar
         path: target/out/jvm/scala-3.3.8/medicate/medicate-assembly-0.1.0.jar
