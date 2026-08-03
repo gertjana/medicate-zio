@@ -19,6 +19,19 @@ lazy val root = project
     scalaVersion := scala3Version,
     semanticdbEnabled := true,
     scalacOptions += { "-Wunused:imports" },
+    // Scala 3 built-in coverage: always instrument main sources so the CAS-backed
+    // incremental compiler doesn't skip recompilation. sbt 2.x stores outputs in a
+    // content-addressable store; without a constant flag, a changed env var won't
+    // trigger recompilation. The instrumentation overhead is negligible in production.
+    Compile / scalacOptions += {
+      val dir = baseDirectory.value / "target" / "coverage" / "scoverage-data"
+      dir.mkdirs()
+      s"-coverage-out:${dir.getAbsolutePath}"
+    },
+    // Prevent Test sources from also being instrumented (test paths confuse the reporter).
+    Test / scalacOptions ~= (_.filterNot(_.startsWith("-coverage-out"))),
+    // Point sbt-scoverage's report task at the native coverage output
+    coverageDataDir := baseDirectory.value / "target" / "coverage",
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio" % zioVersion,
       "dev.zio" %% "zio-http" % zioHttpVersion,

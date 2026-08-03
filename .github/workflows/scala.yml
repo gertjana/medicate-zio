@@ -68,24 +68,14 @@ jobs:
     - name: Install sbt
       uses: sbt/setup-sbt@v1
     - name: Run tests
-      run: sbt "coverage; test; coverageReport"
-    - name: Locate coverage report
-      id: coverage-file
-      run: |
-        coverage_file="$(find target -type f -path "*/scoverage-report/scoverage.xml" | head -n 1)"
-        if [ -z "$coverage_file" ]; then
-          coverage_file="$(find target -type f -path "*/coverage-report/cobertura.xml" | head -n 1)"
-        fi
-        if [ -z "$coverage_file" ]; then
-          echo "Coverage report file not found under target/" >&2
-          exit 1
-        fi
-        echo "file=$coverage_file" >> "$GITHUB_OUTPUT"
+      run: sbt test
+    - name: Generate coverage report
+      run: sbt coverageReport
     - name: Upload coverage report
       uses: codecov/codecov-action@v6
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        files: ${{ steps.coverage-file.outputs.file }}
+        files: target/coverage/scoverage-report/scoverage.xml
         disable_search: true
 
   assembly:
