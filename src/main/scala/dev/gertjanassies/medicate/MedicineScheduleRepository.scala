@@ -68,17 +68,13 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
     redis.del(s"$prefix$id").unit
 
   def getDailySchedule(): ZIO[
-    MedicineScheduleRepository
-      & MedicineRepository
-      & DosageHistoryRepository,
+    MedicineScheduleRepository & MedicineRepository & DosageHistoryRepository,
     Throwable,
     List[DailySchedule]
   ] = getDailyScheduleForDate(LocalDate.now().toString).map(_.schedules)
 
   def getDailyScheduleForDate(date: String): ZIO[
-    MedicineScheduleRepository
-      & MedicineRepository
-      & DosageHistoryRepository,
+    MedicineScheduleRepository & MedicineRepository & DosageHistoryRepository,
     Throwable,
     DailyScheduleWithDate
   ] = for {
@@ -103,9 +99,7 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
   } yield DailyScheduleWithDate(date, dailySchedules.toList.sorted)
 
   def getPastDailySchedules(): ZIO[
-    MedicineScheduleRepository
-      & MedicineRepository
-      & DosageHistoryRepository,
+    MedicineScheduleRepository & MedicineRepository & DosageHistoryRepository,
     Throwable,
     List[DailyScheduleWithDate]
   ] = for {
@@ -123,9 +117,7 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
   } yield schedules.toList
 
   def addtakendosages(time: String, date: String): ZIO[
-    MedicineScheduleRepository
-      & MedicineRepository
-      & DosageHistoryRepository,
+    MedicineScheduleRepository & MedicineRepository & DosageHistoryRepository,
     RedisError,
     Boolean
   ] = {
@@ -161,9 +153,7 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
   }
 
   def calculateDaysLeft(): ZIO[
-    MedicineScheduleRepository
-      & MedicineRepository
-      & DosageHistoryRepository,
+    MedicineScheduleRepository & MedicineRepository & DosageHistoryRepository,
     Throwable,
     List[(Medicine, Int)]
   ] = for {
