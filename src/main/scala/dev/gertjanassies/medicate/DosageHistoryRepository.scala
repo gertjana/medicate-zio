@@ -23,7 +23,7 @@ class DosageHistoryRepository(redis: Redis, prefix: String) {
       if (keys.isEmpty) ZIO.succeed(List.empty[DosageHistory])
       else
         redis
-          .mGet(keys.head, keys.tail: _*)
+          .mGet(keys.head, keys.tail*)
           .returning[String]
           .map(values =>
             values

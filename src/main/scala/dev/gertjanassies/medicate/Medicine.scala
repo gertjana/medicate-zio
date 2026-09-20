@@ -16,7 +16,6 @@ final case class Medicine(
     unit: String,
     stock: Double
 ) extends Medication {
-  import Medicine._
 
   override def toString(): String = s"$name ($dose $unit)"
 

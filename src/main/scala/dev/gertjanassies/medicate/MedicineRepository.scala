@@ -26,7 +26,7 @@ class MedicineRepository(redis: Redis, prefix: String) {
       .returning[String]
     values <-
       if (keys.isEmpty) ZIO.succeed(List.empty)
-      else redis.mGet(keys.head, keys.tail: _*).returning[String]
+      else redis.mGet(keys.head, keys.tail*).returning[String]
     medicines <- ZIO.succeed(
       values
         .map(_.flatMap(_.fromJson[Medicine].toOption))

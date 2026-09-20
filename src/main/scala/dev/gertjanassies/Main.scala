@@ -32,9 +32,7 @@ object Main extends ZIOAppDefault {
 
     Server
       .serve(
-        MedicineApi.routes ++
-          MedicineScheduleApi.routes ++
-          DosageHistoryApi.routes ++
+        MedicineScheduleApi.routes ++
           InfraApp.routes
       )
       .provide(
