@@ -32,7 +32,7 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
         ZIO.succeed(List.empty)
       } else {
         for {
-          values <- redis.mGet(keys.head, keys.tail: _*).returning[String]
+          values <- redis.mGet(keys.head, keys.tail*).returning[String]
           schedules <- ZIO.succeed(
             values
               .map(_.flatMap(_.fromJson[MedicineSchedule].toOption))
@@ -69,16 +69,16 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
 
   def getDailySchedule(): ZIO[
     MedicineScheduleRepository
-      with MedicineRepository
-      with DosageHistoryRepository,
+      & MedicineRepository
+      & DosageHistoryRepository,
     Throwable,
     List[DailySchedule]
   ] = getDailyScheduleForDate(LocalDate.now().toString).map(_.schedules)
 
   def getDailyScheduleForDate(date: String): ZIO[
     MedicineScheduleRepository
-      with MedicineRepository
-      with DosageHistoryRepository,
+      & MedicineRepository
+      & DosageHistoryRepository,
     Throwable,
     DailyScheduleWithDate
   ] = for {
@@ -104,8 +104,8 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
 
   def getPastDailySchedules(): ZIO[
     MedicineScheduleRepository
-      with MedicineRepository
-      with DosageHistoryRepository,
+      & MedicineRepository
+      & DosageHistoryRepository,
     Throwable,
     List[DailyScheduleWithDate]
   ] = for {
@@ -124,8 +124,8 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
 
   def addtakendosages(time: String, date: String): ZIO[
     MedicineScheduleRepository
-      with MedicineRepository
-      with DosageHistoryRepository,
+      & MedicineRepository
+      & DosageHistoryRepository,
     RedisError,
     Boolean
   ] = {
@@ -162,8 +162,8 @@ class MedicineScheduleRepository(redis: Redis, prefix: String) {
 
   def calculateDaysLeft(): ZIO[
     MedicineScheduleRepository
-      with MedicineRepository
-      with DosageHistoryRepository,
+      & MedicineRepository
+      & DosageHistoryRepository,
     Throwable,
     List[(Medicine, Int)]
   ] = for {

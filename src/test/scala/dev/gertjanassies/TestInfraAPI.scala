@@ -16,7 +16,7 @@ object TestInfraApi extends ZIOSpecDefault {
         _ <- TestServer.addRoutes(infra.InfraApp.routes)
         response <- client.batched(Request.get(testRequest.url / "ready"))
       } yield assertTrue(response.status == Status.Ok)
-    }.provideSome[Client with Driver](TestServer.layer)
+    }.provideSome[Client & Driver](TestServer.layer)
   }.provide(
     ZLayer.succeed(Server.Config.default.onAnyOpenPort),
     Client.default,
